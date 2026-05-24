@@ -388,7 +388,7 @@
           <div class="vs">VS</div>
           <div class="team"><div class="team-name">${g.t2}</div><div class="team-odds-pill">${g.wp2}% win · ${o2}x</div></div>
         </div>
-        ${g.game_date ? `<div class="game-date">${new Date(g.game_date).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
+        ${g.game_date ? `<div class="game-date">${new Date(g.game_date).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
         ${isLocked
           ? `<div style="text-align:center;padding:10px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:10px;font-size:13px;color:#ff7675">🔒 Betting is locked — game in progress</div>`
           : userBet
@@ -521,7 +521,9 @@
     const lock = document.getElementById('a-lock').value;
     if (!t1 || !t2) { toast('Enter both team names'); return; }
     if (isNaN(wp1) || isNaN(wp2) || wp1 < 1 || wp2 < 1) { toast('Enter valid win percentages'); return; }
-    const { error } = await supabase.from('games').insert({ t1, t2, wp1, wp2, game_date: date || null, lock_time: lock || null, status: 'open' });
+    // Convert local datetime to UTC for storage
+    const toUTC = (local) => local ? new Date(local).toISOString() : null;
+    const { error } = await supabase.from('games').insert({ t1, t2, wp1, wp2, game_date: toUTC(date), lock_time: toUTC(lock), status: 'open' });
     if (error) { toast('Error adding game: ' + error.message); return; }
     ['a-t1', 'a-t2', 'a-wp1', 'a-wp2', 'a-date', 'a-lock'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('preview-odds-1').textContent = '—';
