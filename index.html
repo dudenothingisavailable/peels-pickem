@@ -195,8 +195,11 @@
 <!-- Logout modal -->
 <div class="modal-overlay" id="logout-modal" style="display:none">
   <div class="modal-box">
-    <h3>👋 Sign Out?</h3>
+    <h3>👋 Account</h3>
     <p style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:16px">Signed in as <strong id="logout-name" style="color:#FFD700"></strong>.</p>
+    <div id="logout-admin-btn" style="display:none;margin-bottom:10px">
+      <button onclick="closeModal('logout-modal');showAdminLogin()" style="width:100%;background:transparent;border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;">🔑 Enter Admin Mode</button>
+    </div>
     <div class="modal-btns"><button class="modal-cancel" onclick="closeModal('logout-modal')">Stay</button><button class="modal-confirm" onclick="logout()">Sign Out</button></div>
   </div>
 </div>
@@ -329,6 +332,7 @@
   function showLogout() {
     if (!currentUser) return;
     document.getElementById('logout-name').textContent = currentProfile?.username || currentUser.email;
+    document.getElementById('logout-admin-btn').style.display = currentProfile?.is_admin ? 'none' : 'block';
     document.getElementById('logout-modal').style.display = 'flex';
   }
 
