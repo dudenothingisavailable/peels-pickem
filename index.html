@@ -581,28 +581,39 @@
   async function confirmResolve() {
     closeModal('resolve-modal');
     const { gameId, winner } = pendingResolve;
+    toast('Resolving game... 🍌');
+
     // Close the game
-    await supabase.from('games').update({ status: 'closed', winner }).eq('id', gameId);
+    const { error: gameError } = await supabase.from('games').update({ status: 'closed', winner }).eq('id', gameId);
+    if (gameError) { toast('Error closing game: ' + gameError.message); return; }
+
     // Get all pending bets for this game
-    const { data: bets } = await supabase.from('bets').select('*').eq('game_id', gameId).eq('status', 'pending');
+    const { data: bets, error: betsError } = await supabase.from('bets').select('*').eq('game_id', gameId).eq('status', 'pending');
+    if (betsError) { toast('Error fetching bets: ' + betsError.message); return; }
     if (!bets || !bets.length) { toast('Game resolved — no bets to settle.'); renderAdmin(); return; }
 
-    let won = 0, lost = 0;
+    let won = 0, lost = 0, errors = 0;
     for (const bet of bets) {
       if (bet.pick === winner) {
-        await supabase.from('bets').update({ status: 'won' }).eq('id', bet.id);
-        // Add winnings to player's balance
-        const { data: profile } = await supabase.from('profiles').select('peels').eq('id', bet.user_id).single();
-        if (profile) await supabase.from('profiles').update({ peels: parseFloat((profile.peels + bet.potential).toFixed(2)) }).eq('id', bet.user_id);
+        const { error: betErr } = await supabase.from('bets').update({ status: 'won' }).eq('id', bet.id);
+        if (betErr) { errors++; continue; }
+        // Use RPC to safely add winnings
+        const { data: profile, error: profErr } = await supabase.from('profiles').select('peels').eq('id', bet.user_id).single();
+        if (!profErr && profile) {
+          const { error: updateErr } = await supabase.from('profiles').update({ peels: parseFloat((profile.peels + bet.potential).toFixed(2)) }).eq('id', bet.user_id);
+          if (updateErr) errors++;
+        }
         won++;
       } else {
-        await supabase.from('bets').update({ status: 'lost' }).eq('id', bet.id);
+        const { error: betErr } = await supabase.from('bets').update({ status: 'lost' }).eq('id', bet.id);
+        if (betErr) errors++;
         lost++;
       }
     }
     await refreshHeader();
     renderAdmin();
-    toast(`Done! ${won} won, ${lost} lost 🍌`);
+    if (errors > 0) toast(`Done with ${errors} errors. Check Supabase logs.`);
+    else toast(`Done! ${won} won, ${lost} lost 🍌`);
   }
 
   function adjustPeels(userId, username) {
