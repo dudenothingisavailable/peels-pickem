@@ -96,11 +96,6 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .config-warning{background:rgba(255,100,0,0.15);border:1px solid rgba(255,100,0,0.4);border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:#ffaa80;text-align:center}
   </style>
-<link rel="apple-touch-icon" href="icon-peels.png"/>
-<link rel="icon" type="image/png" href="icon-peels.png"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-title" content="Peels Pick'em"/>
-<meta name="theme-color" content="#FFD700"/>
 </head>
 <body>
 <div class="app">
@@ -602,11 +597,12 @@
       if (bet.pick === winner) {
         const { error: betErr } = await supabase.from('bets').update({ status: 'won' }).eq('id', bet.id);
         if (betErr) { errors++; continue; }
-        // Use RPC to safely add winnings
-        const { data: profile, error: profErr } = await supabase.from('profiles').select('peels').eq('id', bet.user_id).single();
-        if (!profErr && profile) {
-          const { error: updateErr } = await supabase.from('profiles').update({ peels: parseFloat((profile.peels + bet.potential).toFixed(2)) }).eq('id', bet.user_id);
-          if (updateErr) errors++;
+        // Use rpc to atomically increment peels
+        const { error: rpcErr } = await supabase.rpc('increment_peels', { user_id_input: bet.user_id, amount_input: bet.potential });
+        if (rpcErr) {
+          // Fallback: direct update
+          const { data: profile } = await supabase.from('profiles').select('peels').eq('id', bet.user_id).single();
+          if (profile) await supabase.from('profiles').update({ peels: parseFloat((profile.peels + bet.potential).toFixed(2)) }).eq('id', bet.user_id);
         }
         won++;
       } else {
