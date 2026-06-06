@@ -232,7 +232,7 @@
   // ─── Payout formula ───────────────────────────────────────
   function calcPayout(winPct) {
     const p = Math.max(1, Math.min(99, winPct)) / 100;
-    return Math.max(1.05, parseFloat(((1 / p) * (1 - HOUSE_EDGE)).toFixed(2)));
+    return Math.max(1.1, Math.round((1 / p) * (1 - HOUSE_EDGE) * 10) / 10);
   }
 
   // ─── Helpers ──────────────────────────────────────────────
@@ -626,7 +626,7 @@
     const amt = parseFloat(document.getElementById('adjust-input').value);
     if (isNaN(amt)) { setError('adjust-error', 'Enter a valid number.'); return; }
     const { data: profile } = await supabase.from('profiles').select('peels, username').eq('id', pendingAdjust.userId).single();
-    const newPeels = parseFloat((profile.peels + amt).toFixed(2));
+    const newPeels = Math.round(profile.peels + amt);
     await supabase.from('profiles').update({ peels: newPeels }).eq('id', pendingAdjust.userId);
     closeModal('adjust-modal');
     renderAdminPlayers(); refreshHeader();
