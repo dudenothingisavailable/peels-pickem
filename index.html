@@ -583,38 +583,33 @@
     const { gameId, winner } = pendingResolve;
     toast('Resolving game... 🍌');
 
-    // Close the game
+    // Close the game first
     const { error: gameError } = await supabase.from('games').update({ status: 'closed', winner }).eq('id', gameId);
     if (gameError) { toast('Error closing game: ' + gameError.message); return; }
 
-    // Get all pending bets for this game
-    const { data: bets, error: betsError } = await supabase.from('bets').select('*').eq('game_id', gameId).eq('status', 'pending');
-    if (betsError) { toast('Error fetching bets: ' + betsError.message); return; }
-    if (!bets || !bets.length) { toast('Game resolved — no bets to settle.'); renderAdmin(); return; }
-
-    let won = 0, lost = 0, errors = 0;
-    for (const bet of bets) {
-      if (bet.pick === winner) {
-        const { error: betErr } = await supabase.from('bets').update({ status: 'won' }).eq('id', bet.id);
-        if (betErr) { errors++; continue; }
-        // Use rpc to atomically increment peels
-        const { error: rpcErr } = await supabase.rpc('increment_peels', { user_id_input: bet.user_id, amount_input: bet.potential });
-        if (rpcErr) {
-          // Fallback: direct update
-          const { data: profile } = await supabase.from('profiles').select('peels').eq('id', bet.user_id).single();
-          if (profile) await supabase.from('profiles').update({ peels: parseFloat((profile.peels + bet.potential).toFixed(2)) }).eq('id', bet.user_id);
-        }
-        won++;
+    // Call edge function to settle bets with service role (bypasses RLS)
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/settle-bets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ game_id: gameId, winner })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        await refreshHeader();
+        renderAdmin();
+        toast(`Done! ${result.won} won, ${result.lost} lost 🍌`);
       } else {
-        const { error: betErr } = await supabase.from('bets').update({ status: 'lost' }).eq('id', bet.id);
-        if (betErr) errors++;
-        lost++;
+        toast('Edge function error: ' + JSON.stringify(result));
+        renderAdmin();
       }
+    } catch(e) {
+      toast('Error settling bets: ' + e.message);
+      renderAdmin();
     }
-    await refreshHeader();
-    renderAdmin();
-    if (errors > 0) toast(`Done with ${errors} errors. Check Supabase logs.`);
-    else toast(`Done! ${won} won, ${lost} lost 🍌`);
   }
 
   function adjustPeels(userId, username) {
