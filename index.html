@@ -833,7 +833,7 @@
       }
       // Update local peels
       currentProfile.peels = result.new_peels;
-      updateHeader();
+      await refreshHeader();
       // Show reveal animation
       document.getElementById('card-reveal-box').innerHTML = cardHTML(result.card);
       document.getElementById('card-reveal-overlay').style.display = 'flex';
