@@ -763,10 +763,10 @@
   const RARITY_MULTIPLIER = { common: 1, rare: 2, legendary: 3, mythic: 5 };
   const RARITY_COLOR = { common: '#aaa', rare: '#60a5fa', legendary: '#FFD700', mythic: '#e879f9' };
 
-  function cardHTML(card, showMult=true, lockedRarity=null, userCardId=null, showSell=false) {
+  function cardHTML(card, showMult=true, lockedRarity=null, userCardId=null, showSell=false, earnedPeels=null) {
     const rarity = lockedRarity || card.rarity;
     const mult = RARITY_MULTIPLIER[rarity] || 1;
-    const pts = card.total_peels_earned || 0;
+    const pts = earnedPeels !== null ? earnedPeels : (card.total_peels_earned || 0);
     const sellPrice = Math.round(200 * (mult / 5)); // sell value based on rarity
     return `<div class="player-card ${rarity}">
       <div class="card-rarity rarity-${rarity}">${rarity} ${rarity==='mythic'?'🔮':rarity==='legendary'?'⭐':rarity==='rare'?'💎':'·'}</div>
@@ -800,7 +800,7 @@
     if (!myCards?.length) {
       myEl.innerHTML = '<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No cards yet! Buy a pack or check if you have a free starter card.</div>';
     } else {
-      myEl.innerHTML = `<div class="cards-grid-collection">${myCards.map(uc => cardHTML(uc.player_cards, true, uc.locked_rarity, uc.id, true)).join('')}</div>`;
+      myEl.innerHTML = `<div class="cards-grid-collection">${myCards.map(uc => cardHTML(uc.player_cards, true, uc.locked_rarity, uc.id, true, uc.total_peels_earned || 0)).join('')}</div>`;
     }
 
     // Packs
