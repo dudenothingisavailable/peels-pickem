@@ -843,21 +843,22 @@
     else if (roll < mythicPct + legendaryPct + rarePct) rarity = 'rare';
 
     // Get a random card of that rarity from this pack
-    let { data: cards } = await supabase.from('player_cards').select('*').eq('pack_id', packId).eq('rarity', rarity);
-    if (!cards?.length) {
+    const { data: rarityCards } = await supabase.from('player_cards').select('*').eq('pack_id', packId).eq('rarity', rarity);
+    let cardPool = rarityCards || [];
+    if (!cardPool.length) {
       // Fallback to any card in pack if none of that rarity
       const { data: anyCards } = await supabase.from('player_cards').select('*').eq('pack_id', packId);
-      if (!anyCards?.length) {
-        toast('No cards in this pack yet! Refunding...');
-        await supabase.from('profiles').update({ peels: Math.round(freshProfile.peels) }).eq('id', currentUser.id);
-        currentProfile.peels = freshProfile.peels;
-        updateHeader();
-        packPurchaseInProgress = false;
-        return;
-      }
-      cards = anyCards;
+      cardPool = anyCards || [];
     }
-    const card = cards[Math.floor(Math.random() * cards.length)];
+    if (!cardPool.length) {
+      toast('No cards in this pack yet! Refunding...');
+      await supabase.from('profiles').update({ peels: Math.round(freshProfile.peels) }).eq('id', currentUser.id);
+      currentProfile.peels = freshProfile.peels;
+      updateHeader();
+      packPurchaseInProgress = false;
+      return;
+    }
+    const card = cardPool[Math.floor(Math.random() * cardPool.length)];
 
     // Add card to user collection
     await supabase.from('user_cards').insert({ user_id: currentUser.id, card_id: card.id, total_peels_earned: 0 });
