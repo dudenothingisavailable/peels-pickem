@@ -813,64 +813,33 @@
   let packPurchaseInProgress = false;
   async function buyPack(packId, packName, price, commonPct, rarePct, legendaryPct, mythicPct=0) {
     if (!currentUser) { toast('Sign in first!'); return; }
-    if (packPurchaseInProgress) return; // prevent double click
+    if (packPurchaseInProgress) return;
     packPurchaseInProgress = true;
 
-    // Always fetch fresh peels balance from DB first
-    const { data: freshProfile } = await supabase.from('profiles').select('peels').eq('id', currentUser.id).single();
-    if (!freshProfile || freshProfile.peels < price) {
-      toast('Not enough Peels! 🍌');
-      packPurchaseInProgress = false;
-      return;
-    }
-
-    // Deduct peels immediately in DB before doing anything else
-    const newPeels = Math.round(freshProfile.peels - price);
-    const { error: deductError } = await supabase.from('profiles').update({ peels: newPeels }).eq('id', currentUser.id);
-    if (deductError) {
-      toast('Error processing purchase. Try again.');
-      packPurchaseInProgress = false;
-      return;
-    }
-    currentProfile.peels = newPeels;
-    updateHeader();
-
-    // Roll rarity
-    const roll = Math.random() * 100;
-    let rarity = 'common';
-    if (roll < mythicPct) rarity = 'mythic';
-    else if (roll < mythicPct + legendaryPct) rarity = 'legendary';
-    else if (roll < mythicPct + legendaryPct + rarePct) rarity = 'rare';
-
-    // Get a random card of that rarity from this pack
-    const { data: rarityCards } = await supabase.from('player_cards').select('*').eq('pack_id', packId).eq('rarity', rarity);
-    let cardPool = rarityCards || [];
-    if (!cardPool.length) {
-      // Fallback to any card in pack if none of that rarity
-      const { data: anyCards } = await supabase.from('player_cards').select('*').eq('pack_id', packId);
-      cardPool = anyCards || [];
-    }
-    if (!cardPool.length) {
-      toast('No cards in this pack yet! Refunding...');
-      await supabase.from('profiles').update({ peels: Math.round(freshProfile.peels) }).eq('id', currentUser.id);
-      currentProfile.peels = freshProfile.peels;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/open-pack`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ pack_id: packId, user_id: currentUser.id })
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast('Error: ' + (result.error || 'Something went wrong'));
+        packPurchaseInProgress = false;
+        return;
+      }
+      // Update local peels
+      currentProfile.peels = result.new_peels;
       updateHeader();
-      packPurchaseInProgress = false;
-      return;
+      // Show reveal animation
+      document.getElementById('card-reveal-box').innerHTML = cardHTML(result.card);
+      document.getElementById('card-reveal-overlay').style.display = 'flex';
+    } catch(e) {
+      toast('Error: ' + e.message);
     }
-    const card = cardPool[Math.floor(Math.random() * cardPool.length)];
-
-    // Add card to user collection
-    const { error: insertError } = await supabase.from('user_cards').insert({ user_id: currentUser.id, card_id: card.id, total_peels_earned: 0 });
-    if (insertError) {
-      toast('Card error: ' + insertError.message);
-      packPurchaseInProgress = false;
-      return;
-    }
-
-    // Show reveal animation
-    document.getElementById('card-reveal-box').innerHTML = cardHTML(card);
-    document.getElementById('card-reveal-overlay').style.display = 'flex';
     packPurchaseInProgress = false;
   }
 
