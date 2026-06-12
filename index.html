@@ -118,6 +118,7 @@
   .pack-btn{background:#FFD700;color:#1a1a2e;border:none;padding:8px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;width:100%}
   .pack-btn:hover{opacity:0.9}
   .pack-btn:disabled{opacity:0.4;cursor:not-allowed}
+  .starter-pack{border-color:rgba(16,185,129,0.5)!important;background:rgba(16,185,129,0.05)!important}
   .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
   .card-reveal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:16px}
   .card-reveal-box{background:rgba(255,255,255,0.04);border-radius:20px;padding:28px;text-align:center;max-width:280px;animation:cardReveal .5s ease-out}
@@ -270,6 +271,14 @@
     <h3>🃏 Create Player Card</h3>
     <div class="input-group"><label>Player Name</label><input id="cc-player" placeholder="e.g. Billy the Kid"/></div>
     <div class="input-group"><label>Team / Description</label><input id="cc-team" placeholder="e.g. Savannah Bananas"/></div>
+    <div class="input-group"><label>Position</label>
+      <select id="cc-position">
+        <option value="">No position</option>
+        <option value="Batter">Batter</option>
+        <option value="Pitcher">Pitcher</option>
+        <option value="Two-Way">Two-Way</option>
+      </select>
+    </div>
     <div class="input-group"><label>Rarity</label>
       <select id="cc-rarity">
         <option value="common">Common (1x multiplier)</option>
@@ -278,9 +287,10 @@
         <option value="mythic">Mythic (5x multiplier)</option>
       </select>
     </div>
-    <div class="input-group"><label>Pack</label>
-      <select id="cc-pack-select"></select>
+    <div class="input-group"><label>Packs (select multiple)</label>
+      <select id="cc-pack-select" multiple style="height:100px"></select>
     </div>
+    <p style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:-8px;margin-bottom:8px">Hold Ctrl/Cmd to select multiple packs</p>
     <div class="auth-error" id="cc-error"></div>
     <div class="modal-btns">
       <button class="modal-cancel" onclick="closeModal('create-card-modal')">Cancel</button>
@@ -398,13 +408,13 @@
         const { data, error } = await supabase.auth.signUp({ email, password: pass });
         if (error) { setError('auth-error', error.message); btn.textContent = 'Sign Up'; btn.disabled = false; return; }
         await supabase.from('profiles').insert({ id: data.user.id, username, peels: 100, is_admin: false });
-        // Give free starter card
-        const { data: commonCards } = await supabase.from('player_cards').select('id').eq('rarity', 'common').limit(20);
-        if (commonCards?.length) {
-          const freeCard = commonCards[Math.floor(Math.random() * commonCards.length)];
-          await supabase.from('user_cards').insert({ user_id: data.user.id, card_id: freeCard.id, total_peels_earned: 0 });
+        // Give free starter pack opening
+        const { data: starterPack } = await supabase.from('card_packs').select('id').eq('is_starter', true).single();
+        if (starterPack) {
+          // Mark user as having a free pack to open
+          await supabase.from('free_pack_claims').insert({ user_id: data.user.id, pack_id: starterPack.id, claimed: false });
         }
-        toast('Welcome! You have 100 Peels + a free starter card! 🍌🃏');
+        toast('Welcome! You have 100 Peels + a free starter pack! 🍌🃏');
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
         if (error) { setError('auth-error', 'Incorrect email or password.'); btn.textContent = 'Sign In'; btn.disabled = false; return; }
@@ -771,7 +781,7 @@
     return `<div class="player-card ${rarity}">
       <div class="card-rarity rarity-${rarity}">${rarity} ${rarity==='mythic'?'🔮':rarity==='legendary'?'⭐':rarity==='rare'?'💎':'·'}</div>
       <div class="card-player">${card.player_name}</div>
-      <div class="card-team">${card.team_name||''}</div>
+      <div class="card-team">${card.position?'<span style="background:rgba(255,215,0,0.15);border-radius:50px;padding:1px 8px;font-size:11px;margin-right:4px">'+card.position+'</span>':''}${card.team_name||''}</div>
       <div class="card-pts">${pts}</div>
       <div class="card-pts-lbl">Peels earned</div>
       ${showMult?`<div class="card-mult" style="color:${RARITY_COLOR[rarity]}">${mult}x multiplier</div>`:''}
@@ -805,15 +815,15 @@
 
     // Packs
     const packsEl = document.getElementById('packs-list');
-    const { data: packs } = await supabase.from('card_packs').select('*').order('created_at');
+    const { data: packs } = await supabase.from('card_packs').select('*').order('price');
     if (!packs?.length) {
       packsEl.innerHTML = '<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No packs available yet.</div>';
     } else {
       packsEl.innerHTML = packs.map(p => `
-        <div class="pack-card">
+        <div class="pack-card ${p.is_starter?'starter-pack':''}">
           <div class="pack-header">
-            <div class="pack-name">${p.name}</div>
-            <div class="pack-price">${p.price} 🍌</div>
+            <div class="pack-name">${p.is_starter?'🎁 ':''}${p.name}</div>
+            <div class="pack-price">${p.price===0?'FREE':p.price+' 🍌'}</div>
           </div>
           <div class="pack-odds">
             <span style="color:#aaa">Common ${p.common_pct}%</span> ·
@@ -821,7 +831,9 @@
             <span style="color:#FFD700">Legendary ${p.legendary_pct}%</span> ·
             <span style="color:#e879f9">Mythic ${p.mythic_pct||0}%</span>
           </div>
-          <button class="pack-btn" onclick="buyPack('${p.id}','${p.name}',${p.price},${p.common_pct},${p.rare_pct},${p.legendary_pct},${p.mythic_pct||0})">Open Pack — ${p.price} Peels</button>
+          <button class="pack-btn" onclick="buyPack('${p.id}','${p.name}',${p.price},${p.common_pct},${p.rare_pct},${p.legendary_pct},${p.mythic_pct||0})">
+            ${p.price===0?'Claim Free Pack!':'Open Pack — '+p.price+' Peels'}
+          </button>
         </div>`).join('');
     }
   }
@@ -887,7 +899,6 @@
   }
 
   async function showCreateCard() {
-    // Load packs into select
     const { data: packs } = await supabase.from('card_packs').select('id, name');
     const sel = document.getElementById('cc-pack-select');
     sel.innerHTML = (packs||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
@@ -897,14 +908,26 @@
   async function createPlayerCard() {
     const player = document.getElementById('cc-player').value.trim();
     const team = document.getElementById('cc-team').value.trim();
+    const position = document.getElementById('cc-position').value;
     const rarity = document.getElementById('cc-rarity').value;
-    const packId = document.getElementById('cc-pack-select').value;
+    const packSel = document.getElementById('cc-pack-select');
+    const packIds = Array.from(packSel.selectedOptions).map(o => o.value);
     if (!player) { setError('cc-error', 'Enter player name.'); return; }
-    if (!packId) { setError('cc-error', 'Select a pack.'); return; }
-    const { error } = await supabase.from('player_cards').insert({ player_name: player, team_name: team, rarity, pack_id: packId });
+    if (!packIds.length) { setError('cc-error', 'Select at least one pack.'); return; }
+    // Insert one card record, then link to multiple packs
+    const { data: card, error } = await supabase.from('player_cards').insert({ 
+      player_name: player, team_name: team, rarity, position: position||null, pack_id: packIds[0]
+    }).select().single();
     if (error) { setError('cc-error', error.message); return; }
+    // Add to additional packs via junction table
+    if (packIds.length > 1) {
+      const extras = packIds.slice(1).map(pid => ({ card_id: card.id, pack_id: pid }));
+      await supabase.from('card_pack_members').insert(extras);
+    }
+    // Also add primary pack to junction table
+    await supabase.from('card_pack_members').insert({ card_id: card.id, pack_id: packIds[0] });
     closeModal('create-card-modal');
-    toast('Card created! 🃏');
+    toast('Card created in ' + packIds.length + ' pack(s)! 🃏');
     renderAdmin();
   }
 
