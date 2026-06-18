@@ -810,7 +810,10 @@
     myEl.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
     const { data: myCards } = await supabase.from('user_cards').select('*, player_cards(*)').eq('user_id', currentUser.id).order('created_at', {ascending: false});
     if (!myCards?.length) {
-      myEl.innerHTML = '<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No cards yet! Buy a pack or check if you have a free starter card.</div>';
+      myEl.innerHTML = `<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">
+        No cards yet!<br/><br/>
+        <button class="btn-gold" style="background:#FFD700;color:#1a1a2e;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif" onclick="showStarterCardPicker(currentUser.id)">🎁 Claim Your Free Starter Card</button>
+      </div>`;
     } else {
       myEl.innerHTML = `<div class="cards-grid-collection">${myCards.map(uc => cardHTML(uc.player_cards, true, uc.locked_rarity, uc.id, true, uc.total_peels_earned || 0)).join('')}</div>`;
     }
