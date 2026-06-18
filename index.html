@@ -259,6 +259,44 @@
   </div>
 </div>
 
+<!-- Edit game modal -->
+<div class="modal-overlay" id="edit-game-modal" style="display:none">
+  <div class="modal-box">
+    <h3>✏️ Edit Game</h3>
+    <input type="hidden" id="edit-game-id"/>
+    <div class="grid2">
+      <div class="input-group"><label>Team 1 Name</label><input id="edit-t1"/></div>
+      <div class="input-group"><label>Team 2 Name</label><input id="edit-t2"/></div>
+    </div>
+    <div class="grid2">
+      <div class="input-group">
+        <label>Team 1 Win %</label>
+        <div class="win-pct-row" style="margin-bottom:0">
+          <input id="edit-wp1" type="number" min="1" max="99" oninput="syncEditWinPct(1)"/>
+          <div class="calc-pill" id="edit-odds-1">—</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Team 2 Win % (auto)</label>
+        <div class="win-pct-row" style="margin-bottom:0">
+          <input id="edit-wp2" type="number" min="1" max="99" oninput="syncEditWinPct(2)"/>
+          <div class="calc-pill" id="edit-odds-2">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="input-group"><label>Game Date/Time</label><input id="edit-date" type="datetime-local"/></div>
+      <div class="input-group"><label>Betting Locks At</label><input id="edit-lock" type="datetime-local"/></div>
+    </div>
+    <p style="font-size:12px;color:rgba(255,215,0,0.5);margin-bottom:12px">⚠️ Existing bets keep their original odds — only new bets use updated odds.</p>
+    <div class="auth-error" id="edit-game-error"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal('edit-game-modal')">Cancel</button>
+      <button class="modal-confirm" onclick="saveEditGame()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Card reveal overlay -->
 <div id="card-reveal-overlay" style="display:none" class="card-reveal-overlay">
   <div style="font-family:'Bangers',cursive;font-size:28px;color:#FFD700;letter-spacing:2px">You got...</div>
@@ -684,9 +722,12 @@
           <small>Payouts: ${calcPayout(g.wp1)}x / ${calcPayout(g.wp2)}x${g.game_date ? ' · ' + new Date(g.game_date).toLocaleDateString() : ''}${g.status === 'closed' ? '<span class="closed-tag">closed</span>' : ''}</small>
         </div>
         ${g.status === 'open'
-          ? `<div class="result-btns" style="min-width:180px">
-              <button class="result-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" onclick="resolveGame('${g.id}','${g.t1}')">${g.t1} wins</button>
-              <button class="result-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" onclick="resolveGame('${g.id}','${g.t2}')">${g.t2} wins</button>
+          ? `<div style="display:flex;flex-direction:column;gap:6px;min-width:180px">
+              <div class="result-btns">
+                <button class="result-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" onclick="resolveGame('${g.id}','${g.t1}')">${g.t1} wins</button>
+                <button class="result-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" onclick="resolveGame('${g.id}','${g.t2}')">${g.t2} wins</button>
+              </div>
+              <button class="result-btn" style="color:#60a5fa;border-color:rgba(96,165,250,0.4);width:100%" onclick="editGame('${g.id}','${g.t1}','${g.t2}',${g.wp1},${g.wp2},'${g.game_date||''}','${g.lock_time||''}')">✏️ Edit Game</button>
             </div>`
           : `<span style="font-size:12px;color:rgba(255,255,255,0.3)">Winner: ${g.winner || '—'}</span>`}
       </div>`).join('');
@@ -705,6 +746,66 @@
           <button class="result-btn" style="padding:5px 10px;font-size:12px" onclick="adjustPeels('${u.id}','${u.username}')">Adjust</button>
         </div>
       </div>`).join('');
+  }
+
+  // ─── Edit game ───────────────────────────────────────────────
+  function editGame(gameId, t1, t2, wp1, wp2, gameDate, lockTime) {
+    document.getElementById('edit-game-id').value = gameId;
+    document.getElementById('edit-t1').value = t1;
+    document.getElementById('edit-t2').value = t2;
+    document.getElementById('edit-wp1').value = wp1;
+    document.getElementById('edit-wp2').value = wp2;
+    // Convert UTC dates back to local datetime-local format
+    if (gameDate) {
+      const d = new Date(gameDate);
+      document.getElementById('edit-date').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    } else {
+      document.getElementById('edit-date').value = '';
+    }
+    if (lockTime) {
+      const l = new Date(lockTime);
+      document.getElementById('edit-lock').value = new Date(l.getTime() - l.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    } else {
+      document.getElementById('edit-lock').value = '';
+    }
+    syncEditWinPct(1);
+    setError('edit-game-error', '');
+    document.getElementById('edit-game-modal').style.display = 'flex';
+  }
+
+  function syncEditWinPct(changed) {
+    const v = parseFloat(document.getElementById('edit-wp' + changed).value);
+    if (!isNaN(v) && v >= 1 && v <= 99) {
+      document.getElementById('edit-wp' + (changed === 1 ? 2 : 1)).value = Math.max(1, Math.min(99, 100 - v));
+    }
+    const wp1 = parseFloat(document.getElementById('edit-wp1').value);
+    const wp2 = parseFloat(document.getElementById('edit-wp2').value);
+    if (!isNaN(wp1)) document.getElementById('edit-odds-1').textContent = calcPayout(wp1) + 'x';
+    if (!isNaN(wp2)) document.getElementById('edit-odds-2').textContent = calcPayout(wp2) + 'x';
+  }
+
+  async function saveEditGame() {
+    setError('edit-game-error', '');
+    const gameId = document.getElementById('edit-game-id').value;
+    const t1 = document.getElementById('edit-t1').value.trim();
+    const t2 = document.getElementById('edit-t2').value.trim();
+    const wp1 = parseFloat(document.getElementById('edit-wp1').value);
+    const wp2 = parseFloat(document.getElementById('edit-wp2').value);
+    const date = document.getElementById('edit-date').value;
+    const lock = document.getElementById('edit-lock').value;
+    if (!t1 || !t2) { setError('edit-game-error', 'Enter both team names.'); return; }
+    if (isNaN(wp1) || isNaN(wp2)) { setError('edit-game-error', 'Enter valid win percentages.'); return; }
+    const toUTC = (local) => local ? new Date(local).toISOString() : null;
+    const { error } = await supabase.from('games').update({
+      t1, t2, wp1, wp2,
+      game_date: toUTC(date),
+      lock_time: toUTC(lock)
+    }).eq('id', gameId);
+    if (error) { setError('edit-game-error', error.message); return; }
+    closeModal('edit-game-modal');
+    toast('Game updated! 🍌');
+    renderAdminGames();
+    renderGames(); // refresh player-facing games too
   }
 
   function resolveGame(gameId, winner) {
