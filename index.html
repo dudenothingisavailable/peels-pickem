@@ -434,14 +434,14 @@
     const btn = document.getElementById('feedback-submit-btn');
     btn.textContent = 'Sending...'; btn.disabled = true;
     try {
-      const res = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+      const res = await fetch('https://formspree.io/f/mojzgzlk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           message: text,
           from_user: currentProfile?.username || 'Unknown',
           email: currentUser?.email || 'Unknown',
-          app: 'Peels Pick\\'em'
+          app: "Peels Pick'em"
         })
       });
       if (res.ok) {
