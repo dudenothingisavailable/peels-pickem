@@ -1,1399 +1,1399 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Peels Pick'em 🍌</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'DM Sans',sans-serif;background:#1a1a2e;color:#fff;min-height:100vh}
-    .app{max-width:900px;margin:0 auto;padding:16px}
-    .header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#FFD700;border-radius:16px;margin-bottom:16px}
-    .logo{font-family:'Bangers',cursive;font-size:28px;color:#1a1a2e;letter-spacing:2px}
-    .logo span{color:#2d6a4f}
-    .user-pill{display:flex;align-items:center;gap:8px;background:#1a1a2e;color:#FFD700;padding:8px 14px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer}
-    .peels-badge{background:#FFD700;color:#1a1a2e;padding:2px 10px;border-radius:50px;font-weight:700;font-size:13px}
-    .nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-    .nav-btn{padding:8px 18px;border-radius:50px;border:2px solid #FFD700;background:transparent;color:#FFD700;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:14px;transition:all .2s}
-    .nav-btn.active{background:#FFD700;color:#1a1a2e}
-    .page{display:none}.page.active{display:block}
-    .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:12px}
-    h2{font-family:'Bangers',cursive;font-size:24px;color:#FFD700;letter-spacing:1px;margin-bottom:12px}
-    .game-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:14px;padding:14px;margin-bottom:10px}
-    .game-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:10px;gap:8px}
-    .team{text-align:center}
-    .team-name{font-family:'Bangers',cursive;font-size:18px;color:#FFD700;letter-spacing:1px}
-    .team-odds-pill{display:inline-block;background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.25);border-radius:50px;padding:2px 10px;font-size:12px;color:rgba(255,215,0,0.8);margin-top:4px}
-    .vs{font-family:'Bangers',cursive;font-size:16px;color:rgba(255,255,255,0.4);text-align:center}
-    .game-date{text-align:center;font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:10px}
-    .pick-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
-    .pick-btn{padding:10px;border-radius:10px;border:2px solid rgba(255,215,0,0.3);background:transparent;color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:13px;transition:all .15s;text-align:center}
-    .pick-btn:hover{border-color:#FFD700;background:rgba(255,215,0,0.1)}
-    .pick-btn.selected{background:#FFD700;color:#1a1a2e;border-color:#FFD700}
-    .pick-btn .btn-payout{display:block;font-size:11px;font-weight:400;margin-top:2px;opacity:0.75}
-    .wager-row{display:flex;align-items:center;gap:10px}
-    .wager-input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:8px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
-    .wager-input::placeholder{color:rgba(255,255,255,0.3)}
-    .place-btn{background:#FFD700;color:#1a1a2e;border:none;padding:8px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;white-space:nowrap}
-    .place-btn:disabled{opacity:0.5;cursor:not-allowed}
-    .payout-preview{font-size:12px;color:rgba(255,215,0,0.7);text-align:right;margin-top:4px;min-height:16px}
-    .bet-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px}
-    .bet-item:last-child{border-bottom:none}
-    .bet-status{padding:3px 10px;border-radius:50px;font-size:12px;font-weight:700}
-    .status-pending{background:rgba(255,215,0,0.15);color:#FFD700}
-    .status-won{background:rgba(45,106,79,0.3);color:#6fcf97}
-    .status-lost{background:rgba(192,57,43,0.3);color:#ff7675}
-    .lb-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
-    .lb-row:last-child{border-bottom:none}
-    .lb-rank{font-family:'Bangers',cursive;font-size:20px;color:#FFD700;width:32px}
-    .lb-name{flex:1;font-size:15px;font-weight:600}
-    .lb-peels{font-family:'Bangers',cursive;font-size:18px;color:#FFD700}
-    .lb-peels span{font-size:12px;font-weight:400;font-family:'DM Sans',sans-serif;color:rgba(255,215,0,0.6)}
-    .input-group{margin-bottom:12px}
-    .input-group label{display:block;font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px}
-    .input-group input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:9px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
-    .admin-btn{background:#FFD700;color:#1a1a2e;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;width:100%;margin-top:8px}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .stat-box{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:12px;padding:12px;text-align:center}
-    .stat-num{font-family:'Bangers',cursive;font-size:28px;color:#FFD700}
-    .stat-lbl{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100}
-    .auth-box{background:#1a1a2e;border:2px solid #FFD700;border-radius:20px;padding:28px;width:340px;max-width:95vw}
-    .auth-logo{font-family:'Bangers',cursive;font-size:36px;color:#FFD700;text-align:center;letter-spacing:3px;margin-bottom:4px}
-    .auth-sub{text-align:center;color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:20px}
-    .auth-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.4);color:#fff;padding:11px 14px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;margin-bottom:10px}
-    .auth-btn{width:100%;background:#FFD700;color:#1a1a2e;border:none;padding:12px;border-radius:12px;font-weight:700;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif;margin-bottom:8px}
-    .auth-switch{text-align:center;font-size:13px;color:rgba(255,255,255,0.5)}
-    .auth-switch a{color:#FFD700;cursor:pointer;text-decoration:underline}
-    .auth-error{color:#ff7675;font-size:13px;text-align:center;margin-bottom:8px;min-height:18px}
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFD700;color:#1a1a2e;padding:10px 22px;border-radius:50px;font-weight:700;font-size:14px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
-    .toast.show{opacity:1}
-    .no-games{text-align:center;padding:32px;color:rgba(255,255,255,0.3);font-size:14px}
-    .result-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-    .result-btn{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
-    .result-btn:hover{background:rgba(255,255,255,0.1)}
-    .admin-game-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);gap:10px;flex-wrap:wrap}
-    .admin-game-info{flex:1;font-size:14px}
-    .admin-game-info strong{display:block;margin-bottom:2px}
-    .admin-game-info small{color:rgba(255,255,255,0.4);font-size:12px}
-    .closed-tag{font-size:11px;padding:2px 8px;border-radius:50px;background:rgba(192,57,43,0.3);color:#ff7675;margin-left:4px}
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:200}
-    .modal-box{background:#1a1a2e;border:2px solid #FFD700;border-radius:16px;padding:24px;width:320px;max-width:95vw}
-    .modal-box h3{color:#FFD700;margin-bottom:14px;font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px}
-    .modal-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.4);color:#fff;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:10px}
-    .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
-    .modal-confirm{background:#FFD700;color:#1a1a2e;border:none;padding:9px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
-    .modal-cancel{background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.2);padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
-    .odds-preview{background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between}
-    .odds-preview span{color:#FFD700;font-weight:700}
-    .win-pct-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-    .win-pct-row input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:8px 10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px}
-    .win-pct-row .calc-pill{background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.2);color:#FFD700;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;min-width:60px;text-align:center}
-    .loading{text-align:center;padding:32px;color:rgba(255,215,0,0.5);font-size:14px}
-    .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,215,0,0.3);border-top-color:#FFD700;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .config-warning{background:rgba(255,100,0,0.15);border:1px solid rgba(255,100,0,0.4);border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:#ffaa80;text-align:center}
-  .player-card{background:rgba(255,255,255,0.04);border-radius:16px;padding:16px;text-align:center;position:relative;overflow:hidden;margin-bottom:10px}
-  .player-card.common{border:2px solid rgba(200,200,200,0.4);background:linear-gradient(135deg,rgba(200,200,200,0.08),rgba(255,255,255,0.02))}
-  .player-card.rare{border:2px solid rgba(59,130,246,0.6);background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(255,255,255,0.02))}
-  .player-card.legendary{border:2px solid rgba(245,158,11,0.8);background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(255,100,0,0.1))}
-  .player-card.mythic{border:2px solid rgba(232,121,249,0.9);background:linear-gradient(135deg,rgba(232,121,249,0.2),rgba(139,92,246,0.15));box-shadow:0 0 20px rgba(232,121,249,0.2)}
-  .card-rarity{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
-  .rarity-common{color:#aaa}
-  .rarity-rare{color:#60a5fa}
-  .rarity-legendary{color:#FFD700}
-  .rarity-mythic{color:#e879f9}
-  .card-player{font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:4px}
-  .card-team{font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px}
-  .card-pts{font-family:'Bangers',cursive;font-size:32px;color:#FFD700}
-  .card-pts-lbl{font-size:11px;color:rgba(255,255,255,0.4)}
-  .card-mult{font-size:12px;margin-top:4px;font-weight:700}
-  .pack-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:10px}
-  .pack-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .pack-name{font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px;color:#FFD700}
-  .pack-price{font-family:'Bangers',cursive;font-size:18px;color:#FFD700}
-  .pack-odds{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px}
-  .pack-btn{background:#FFD700;color:#1a1a2e;border:none;padding:8px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;width:100%}
-  .pack-btn:hover{opacity:0.9}
-  .pack-btn:disabled{opacity:0.4;cursor:not-allowed}
-  .starter-pack{border-color:rgba(16,185,129,0.5)!important;background:rgba(16,185,129,0.05)!important}
-  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
-  .card-reveal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:16px}
-  .card-reveal-box{background:rgba(255,255,255,0.04);border-radius:20px;padding:28px;text-align:center;max-width:280px;animation:cardReveal .5s ease-out}
-  @keyframes cardReveal{from{transform:scale(0.5) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
-  .reveal-close{background:#FFD700;color:#1a1a2e;border:none;padding:10px 28px;border-radius:50px;font-weight:700;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif}
-  .cards-grid-collection{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Peels Pick'em</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+ *{box-sizing:border-box;margin:0;padding:0}
+ body{font-family:'DM Sans',sans-serif;background:#1a1a2e;color:#fff;min-height:100vh}
+ .app{max-width:900px;margin:0 auto;padding:16px}
+ .header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#FFD700;border-radius:16px;margin-bottom:16px}
+ .logo{font-family:'Bangers',cursive;font-size:28px;color:#1a1a2e;letter-spacing:2px}
+ .logo span{color:#2d6a4f}
+ .user-pill{display:flex;align-items:center;gap:8px;background:#1a1a2e;color:#FFD700;padding:8px 14px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer}
+ .peels-badge{background:#FFD700;color:#1a1a2e;padding:2px 10px;border-radius:50px;font-weight:700;font-size:13px}
+ .nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+ .nav-btn{padding:8px 18px;border-radius:50px;border:2px solid #FFD700;background:transparent;color:#FFD700;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:14px;transition:all .2s}
+ .nav-btn.active{background:#FFD700;color:#1a1a2e}
+ .page{display:none}.page.active{display:block}
+ .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:12px}
+ h2{font-family:'Bangers',cursive;font-size:24px;color:#FFD700;letter-spacing:1px;margin-bottom:12px}
+ .game-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:14px;padding:14px;margin-bottom:10px}
+ .game-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:10px;gap:8px}
+ .team{text-align:center}
+ .team-name{font-family:'Bangers',cursive;font-size:18px;color:#FFD700;letter-spacing:1px}
+ .team-odds-pill{display:inline-block;background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.25);border-radius:50px;padding:2px 10px;font-size:12px;color:rgba(255,215,0,0.8);margin-top:4px}
+ .vs{font-family:'Bangers',cursive;font-size:16px;color:rgba(255,255,255,0.4);text-align:center}
+ .game-date{text-align:center;font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:10px}
+ .pick-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+ .pick-btn{padding:10px;border-radius:10px;border:2px solid rgba(255,215,0,0.3);background:transparent;color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:13px;transition:all .15s;text-align:center}
+ .pick-btn:hover{border-color:#FFD700;background:rgba(255,215,0,0.1)}
+ .pick-btn.selected{background:#FFD700;color:#1a1a2e;border-color:#FFD700}
+ .pick-btn .btn-payout{display:block;font-size:11px;font-weight:400;margin-top:2px;opacity:0.75}
+ .wager-row{display:flex;align-items:center;gap:10px}
+ .wager-input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:8px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
+ .wager-input::placeholder{color:rgba(255,255,255,0.3)}
+ .place-btn{background:#FFD700;color:#1a1a2e;border:none;padding:8px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;white-space:nowrap}
+ .place-btn:disabled{opacity:0.5;cursor:not-allowed}
+ .payout-preview{font-size:12px;color:rgba(255,215,0,0.7);text-align:right;margin-top:4px;min-height:16px}
+ .bet-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px}
+ .bet-item:last-child{border-bottom:none}
+ .bet-status{padding:3px 10px;border-radius:50px;font-size:12px;font-weight:700}
+ .status-pending{background:rgba(255,215,0,0.15);color:#FFD700}
+ .status-won{background:rgba(45,106,79,0.3);color:#6fcf97}
+ .status-lost{background:rgba(192,57,43,0.3);color:#ff7675}
+ .lb-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+ .lb-row:last-child{border-bottom:none}
+ .lb-rank{font-family:'Bangers',cursive;font-size:20px;color:#FFD700;width:32px}
+ .lb-name{flex:1;font-size:15px;font-weight:600}
+ .lb-peels{font-family:'Bangers',cursive;font-size:18px;color:#FFD700}
+ .lb-peels span{font-size:12px;font-weight:400;font-family:'DM Sans',sans-serif;color:rgba(255,215,0,0.6)}
+ .input-group{margin-bottom:12px}
+ .input-group label{display:block;font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px}
+ .input-group input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:9px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
+ .admin-btn{background:#FFD700;color:#1a1a2e;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;width:100%;margin-top:8px}
+ .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+ .stat-box{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:12px;padding:12px;text-align:center}
+ .stat-num{font-family:'Bangers',cursive;font-size:28px;color:#FFD700}
+ .stat-lbl{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px}
+ .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100}
+ .auth-box{background:#1a1a2e;border:2px solid #FFD700;border-radius:20px;padding:28px;width:340px;max-width:95vw}
+ .auth-logo{font-family:'Bangers',cursive;font-size:36px;color:#FFD700;text-align:center;letter-spacing:3px;margin-bottom:4px}
+ .auth-sub{text-align:center;color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:20px}
+ .auth-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.4);color:#fff;padding:11px 14px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;margin-bottom:10px}
+ .auth-btn{width:100%;background:#FFD700;color:#1a1a2e;border:none;padding:12px;border-radius:12px;font-weight:700;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif;margin-bottom:8px}
+ .auth-switch{text-align:center;font-size:13px;color:rgba(255,255,255,0.5)}
+ .auth-switch a{color:#FFD700;cursor:pointer;text-decoration:underline}
+ .auth-error{color:#ff7675;font-size:13px;text-align:center;margin-bottom:8px;min-height:18px}
+ .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFD700;color:#1a1a2e;padding:10px 22px;border-radius:50px;font-weight:700;font-size:14px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+ .toast.show{opacity:1}
+ .no-games{text-align:center;padding:32px;color:rgba(255,255,255,0.3);font-size:14px}
+ .result-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+ .result-btn{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+ .result-btn:hover{background:rgba(255,255,255,0.1)}
+ .admin-game-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);gap:10px;flex-wrap:wrap}
+ .admin-game-info{flex:1;font-size:14px}
+ .admin-game-info strong{display:block;margin-bottom:2px}
+ .admin-game-info small{color:rgba(255,255,255,0.4);font-size:12px}
+ .closed-tag{font-size:11px;padding:2px 8px;border-radius:50px;background:rgba(192,57,43,0.3);color:#ff7675;margin-left:4px}
+ .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:200}
+ .modal-box{background:#1a1a2e;border:2px solid #FFD700;border-radius:16px;padding:24px;width:320px;max-width:95vw}
+ .modal-box h3{color:#FFD700;margin-bottom:14px;font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px}
+ .modal-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.4);color:#fff;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:10px}
+ .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+ .modal-confirm{background:#FFD700;color:#1a1a2e;border:none;padding:9px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
+ .modal-cancel{background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.2);padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
+ .odds-preview{background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between}
+ .odds-preview span{color:#FFD700;font-weight:700}
+ .win-pct-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+ .win-pct-row input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:8px 10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px}
+ .win-pct-row .calc-pill{background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.2);color:#FFD700;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;min-width:60px;text-align:center}
+ .loading{text-align:center;padding:32px;color:rgba(255,215,0,0.5);font-size:14px}
+ .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,215,0,0.3);border-top-color:#FFD700;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+ @keyframes spin{to{transform:rotate(360deg)}}
+ .config-warning{background:rgba(255,100,0,0.15);border:1px solid rgba(255,100,0,0.4);border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:#ffaa80;text-align:center}
+ .player-card{background:rgba(255,255,255,0.04);border-radius:16px;padding:16px;text-align:center;position:relative;overflow:hidden;margin-bottom:10px}
+ .player-card.common{border:2px solid rgba(200,200,200,0.4);background:linear-gradient(135deg,rgba(200,200,200,0.08),rgba(255,255,255,0.02))}
+ .player-card.rare{border:2px solid rgba(59,130,246,0.6);background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(255,255,255,0.02))}
+ .player-card.legendary{border:2px solid rgba(245,158,11,0.8);background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(255,100,0,0.1))}
+ .player-card.mythic{border:2px solid rgba(232,121,249,0.9);background:linear-gradient(135deg,rgba(232,121,249,0.2),rgba(139,92,246,0.15));box-shadow:0 0 20px rgba(232,121,249,0.2)}
+ .card-rarity{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+ .rarity-common{color:#aaa}
+ .rarity-rare{color:#60a5fa}
+ .rarity-legendary{color:#FFD700}
+ .rarity-mythic{color:#e879f9}
+ .card-player{font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:4px}
+ .card-team{font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px}
+ .card-pts{font-family:'Bangers',cursive;font-size:32px;color:#FFD700}
+ .card-pts-lbl{font-size:11px;color:rgba(255,255,255,0.4)}
+ .card-mult{font-size:12px;margin-top:4px;font-weight:700}
+ .pack-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:10px}
+ .pack-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+ .pack-name{font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px;color:#FFD700}
+ .pack-price{font-family:'Bangers',cursive;font-size:18px;color:#FFD700}
+ .pack-odds{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px}
+ .pack-btn{background:#FFD700;color:#1a1a2e;border:none;padding:8px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;width:100%}
+ .pack-btn:hover{opacity:0.9}
+ .pack-btn:disabled{opacity:0.4;cursor:not-allowed}
+ .starter-pack{border-color:rgba(16,185,129,0.5)!important;background:rgba(16,185,129,0.05)!important}
+ .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+ .card-reveal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:16px}
+ .card-reveal-box{background:rgba(255,255,255,0.04);border-radius:20px;padding:28px;text-align:center;max-width:280px;animation:cardReveal .5s ease-out}
+ @keyframes cardReveal{from{transform:scale(0.5) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
+ .reveal-close{background:#FFD700;color:#1a1a2e;border:none;padding:10px 28px;border-radius:50px;font-weight:700;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif}
+ .cards-grid-collection{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+</style>
 </head>
 <body>
 <div class="app">
-  <div class="header">
-    <div class="logo">🍌 PEELS <span>PICK'EM</span></div>
-    <div class="user-pill" onclick="showLogout()">
-      <span id="header-name">Guest</span>
-      <span class="peels-badge" id="header-peels">0 🍌</span>
-    </div>
-  </div>
-  <div class="nav">
-    <button class="nav-btn active" id="nav-games" onclick="showPage('games',this)">Games</button>
-    <button class="nav-btn" id="nav-mybets" onclick="showPage('mybets',this)">My Bets</button>
-    <button class="nav-btn" id="nav-leaderboard" onclick="showPage('leaderboard',this)">Board</button>
-    <button class="nav-btn" id="nav-cards" onclick="showPage('cards',this)">🃏 Cards</button>
-    <button class="nav-btn" id="nav-feedback" onclick="showPage('feedback',this)">💬 Feedback</button>
-    <button class="nav-btn" id="nav-admin" style="display:none" onclick="showPage('admin',this)">Admin</button>
-  </div>
+<div class="header">
+<div class="logo">PEELS <span>PICK'EM</span></div>
+<div class="user-pill" onclick="showLogout()">
+<span id="header-name">Guest</span>
+<span class="peels-badge" id="header-peels">0</span>
+</div>
+</div>
+<div class="nav">
+<button class="nav-btn active" id="nav-games" onclick="showPage('games',this)">Games</button>
+<button class="nav-btn" id="nav-mybets" onclick="showPage('mybets',this)">My Bets</button>
+<button class="nav-btn" id="nav-leaderboard" onclick="showPage('leaderboard',this)">Board</button>
+<button class="nav-btn" id="nav-cards" onclick="showPage('cards',this)">🃏 Cards</button>
+<button class="nav-btn" id="nav-feedback" onclick="showPage('feedback',this)">Feedback</button>
+<button class="nav-btn" id="nav-admin" style="display:none" onclick="showPage('admin',this)">Admin</button>
+</div>
 
-  <div id="page-games" class="page active"><h2>🏟 Active Games</h2><div id="games-list"><div class="loading"><span class="spinner"></span>Loading games...</div></div></div>
-  <div id="page-mybets" class="page"><h2>🍌 My Bets</h2><div id="my-bets-stats" class="grid2" style="margin-bottom:14px"></div><div class="card" id="my-bets-list"></div></div>
-  <div id="page-leaderboard" class="page"><h2>🏆 Leaderboard</h2><div class="card" id="lb-list"><div class="loading"><span class="spinner"></span>Loading...</div></div></div>
-  <div id="page-cards" class="page">
-    <div class="card" style="text-align:center;padding:48px 24px">
-      <div style="font-size:48px;margin-bottom:12px">🃏</div>
-      <h2 style="margin-bottom:8px">Coming Soon!</h2>
-      <p style="color:rgba(255,255,255,0.5);font-size:14px;max-width:320px;margin:0 auto">Player cards are being upgraded behind the scenes. Check back soon for packs, collections, and more! 🍌</p>
-    </div>
-  </div>
-  <div id="page-feedback" class="page">
-    <h2>💬 Send Feedback</h2>
-    <div class="card">
-      <p style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:14px">Found a bug? Have an idea? Let me know — this goes straight to my inbox!</p>
-      <div class="input-group"><label>Your Feedback</label>
-        <textarea id="feedback-text" rows="6" placeholder="Type your feedback, bug report, or suggestion here..." style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical"></textarea>
-      </div>
-      <div class="auth-error" id="feedback-error"></div>
-      <button class="admin-btn" onclick="submitFeedback()" id="feedback-submit-btn">Send Feedback</button>
-    </div>
-  </div>
-  <div id="page-admin" class="page">
-    <h2>⚙ Admin Panel</h2>
-    <div class="card">
-      <h3 style="color:#FFD700;margin-bottom:12px">Add New Game</h3>
-      <div class="grid2">
-        <div class="input-group"><label>Team 1 Name</label><input id="a-t1" placeholder="Savannah Bananas" oninput="updateOddsPreview()"/></div>
-        <div class="input-group"><label>Team 2 Name</label><input id="a-t2" placeholder="Party Animals" oninput="updateOddsPreview()"/></div>
-      </div>
-      <div class="grid2">
-        <div class="input-group">
-          <label>Team 1 Win %</label>
-          <div class="win-pct-row" style="margin-bottom:0"><input id="a-wp1" type="number" min="1" max="99" placeholder="60" oninput="syncWinPct(1)"/><div class="calc-pill" id="preview-odds-1">—</div></div>
-        </div>
-        <div class="input-group">
-          <label>Team 2 Win % (auto)</label>
-          <div class="win-pct-row" style="margin-bottom:0"><input id="a-wp2" type="number" min="1" max="99" placeholder="40" oninput="syncWinPct(2)"/><div class="calc-pill" id="preview-odds-2">—</div></div>
-        </div>
-      </div>
-      <div class="odds-preview" id="odds-preview-box" style="display:none">
-        <div>Favorite: <span id="fav-label">—</span></div>
-        <div>Underdog: <span id="dog-label">—</span></div>
-      </div>
-      <div class="grid2">
-        <div class="input-group"><label>Game Date/Time</label><input id="a-date" type="datetime-local"/></div>
+<div id="page-games" class="page active"><h2>Active Games</h2><div id="games-list"><div class="loading"><span class="spinner"></span>Loading games...</div></div></div>
+<div id="page-mybets" class="page"><h2>My Bets</h2><div id="my-bets-stats" class="grid2" style="margin-bottom:14px"></div><div class="card" id="my-bets-list"></div></div>
+<div id="page-leaderboard" class="page"><h2>Leaderboard</h2><div class="card" id="lb-list"><div class="loading"><span class="spinner"></span>Loading...</div></div></div>
+<div id="page-cards" class="page">
+<div class="card" style="text-align:center;padding:48px 24px">
+<div style="font-size:48px;margin-bottom:12px">🃏</div>
+<h2 style="margin-bottom:8px">Coming Soon!</h2>
+<p style="color:rgba(255,255,255,0.5);font-size:14px;max-width:320px;margin:0 auto">Player cards are being upgraded behind the scenes. Check back soon for packs, collections, and more!</p>
+</div>
+</div>
+<div id="page-feedback" class="page">
+<h2>Send Feedback</h2>
+<div class="card">
+<p style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:14px">Found a bug? Have an idea? Let me know — this goes straight to my inbox!</p>
+<div class="input-group"><label>Your Feedback</label>
+<textarea id="feedback-text" rows="6" placeholder="Type your feedback, bug report, or suggestion here..." style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical"></textarea>
+</div>
+<div class="auth-error" id="feedback-error"></div>
+<button class="admin-btn" onclick="submitFeedback()" id="feedback-submit-btn">Send Feedback</button>
+</div>
+</div>
+<div id="page-admin" class="page">
+<h2>Admin Panel</h2>
+<div class="card">
+<h3 style="color:#FFD700;margin-bottom:12px">Add New Game</h3>
+<div class="grid2">
+<div class="input-group"><label>Team 1 Name</label><input id="a-t1" placeholder="Savannah Bananas" oninput="updateOddsPreview()"/></div>
+<div class="input-group"><label>Team 2 Name</label><input id="a-t2" placeholder="Party Animals" oninput="updateOddsPreview()"/></div>
+</div>
+<div class="grid2">
+<div class="input-group">
+<label>Team 1 Win %</label>
+<div class="win-pct-row" style="margin-bottom:0"><input id="a-wp1" type="number" min="1" max="99" placeholder="60" oninput="syncWinPct(1)"/><div class="calc-pill" id="preview-odds-1">—</div></div>
+</div>
+<div class="input-group">
+<label>Team 2 Win % (auto)</label>
+<div class="win-pct-row" style="margin-bottom:0"><input id="a-wp2" type="number" min="1" max="99" placeholder="40" oninput="syncWinPct(2)"/><div class="calc-pill" id="preview-odds-2">—</div></div>
+</div>
+</div>
+<div class="odds-preview" id="odds-preview-box" style="display:none">
+<div>Favorite:<span id="fav-label">—</span></div>
+<div>Underdog:<span id="dog-label">—</span></div>
+</div>
+<div class="grid2">
+<div class="input-group"><label>Game Date/Time</label><input id="a-date" type="datetime-local"/></div>
 
-      </div>
-      <button class="admin-btn" onclick="addGame()">+ Add Game</button>
-    </div>
-    <div class="card" style="margin-top:12px"><h3 style="color:#FFD700;margin-bottom:12px">Resolve Games</h3><div id="admin-games-list"></div></div>
-    <div class="card" style="margin-top:12px"><h3 style="color:#FFD700;margin-bottom:12px">Manage Players</h3><div id="admin-players-list"></div></div>
-    <div class="card" style="margin-top:12px">
-      <h3 style="color:#FFD700;margin-bottom:12px">🤖 Bot Accounts</h3>
-      <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Add fake names to the leaderboard to make the app feel more active.</p>
-      <div class="grid2">
-        <div class="input-group"><label>Bot Name</label><input id="bot-name" placeholder="e.g. Slugger99"/></div>
-        <div class="input-group"><label>Peels</label><input id="bot-peels" type="number" placeholder="150" value="100"/></div>
-      </div>
-      <button class="admin-btn" onclick="addBot()">+ Add Bot</button>
-      <div id="admin-bots-list" style="margin-top:12px"></div>
-    </div>
-    <div class="card" style="margin-top:12px">
-      <h3 style="color:#FFD700;margin-bottom:12px">🎁 Card Packs</h3>
-      <button class="admin-btn" onclick="showCreatePack()" style="margin-bottom:10px">+ Create Pack</button>
-      <div id="admin-packs-list"></div>
-    </div>
-    <div class="card" style="margin-top:12px">
-      <h3 style="color:#FFD700;margin-bottom:12px">🃏 Player Cards</h3>
-      <button class="admin-btn" onclick="showCreateCard()" style="margin-bottom:10px">+ Create Player Card</button>
-      <div id="admin-cards-list"></div>
-    </div>
-    <div class="card" style="margin-top:12px">
-      <h3 style="color:#FFD700;margin-bottom:12px">📊 Enter Player Stats</h3>
-      <button class="admin-btn" onclick="showPlayerStats()">Enter Stats & Pay Out</button>
-    </div>
-  </div>
+</div>
+<button class="admin-btn" onclick="addGame()">+ Add Game</button>
+</div>
+<div class="card" style="margin-top:12px"><h3 style="color:#FFD700;margin-bottom:12px">Resolve Games</h3><div id="admin-games-list"></div></div>
+<div class="card" style="margin-top:12px"><h3 style="color:#FFD700;margin-bottom:12px">Manage Players</h3><div id="admin-players-list"></div></div>
+<div class="card" style="margin-top:12px">
+<h3 style="color:#FFD700;margin-bottom:12px">Bot Accounts</h3>
+<p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Add fake names to the leaderboard to make the app feel more active.</p>
+<div class="grid2">
+<div class="input-group"><label>Bot Name</label><input id="bot-name" placeholder="e.g. Slugger99"/></div>
+<div class="input-group"><label>Peels</label><input id="bot-peels" type="number" placeholder="150" value="100"/></div>
+</div>
+<button class="admin-btn" onclick="addBot()">+ Add Bot</button>
+<div id="admin-bots-list" style="margin-top:12px"></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h3 style="color:#FFD700;margin-bottom:12px">Card Packs</h3>
+<button class="admin-btn" onclick="showCreatePack()" style="margin-bottom:10px">+ Create Pack</button>
+<div id="admin-packs-list"></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h3 style="color:#FFD700;margin-bottom:12px">🃏 Player Cards</h3>
+<button class="admin-btn" onclick="showCreateCard()" style="margin-bottom:10px">+ Create Player Card</button>
+<div id="admin-cards-list"></div>
+</div>
+<div class="card" style="margin-top:12px">
+<h3 style="color:#FFD700;margin-bottom:12px">Enter Player Stats</h3>
+<button class="admin-btn" onclick="showPlayerStats()">Enter Stats & Pay Out</button>
+</div>
+</div>
 </div>
 
 <!-- Auth overlay -->
 <div class="overlay" id="auth-overlay">
-  <div class="auth-box">
-    <div class="auth-logo">🍌 PEELS</div>
-    <div class="auth-sub" id="auth-sub">Sign in to place your picks</div>
-    <div id="auth-signup-fields" style="display:none"><input class="auth-input" id="auth-username" placeholder="Username"/></div>
-    <input class="auth-input" id="auth-email" placeholder="Email"/>
-    <input class="auth-input" id="auth-password" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()"/>
-    <div class="auth-error" id="auth-error"></div>
-    <button class="auth-btn" onclick="authSubmit()" id="auth-main-btn">Sign In</button>
-    <div class="auth-switch" id="auth-switch">No account? <a onclick="toggleAuth()">Sign up</a> — you get 100 free Peels 🍌</div>
-    <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,215,0,0.15)">
-      <button onclick="showAdminLogin()" style="background:transparent;border:1px solid rgba(255,215,0,0.3);color:rgba(255,215,0,0.6);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">🔑 Admin Login</button>
-    </div>
-  </div>
+<div class="auth-box">
+<div class="auth-logo">PEELS</div>
+<div class="auth-sub" id="auth-sub">Sign in to place your picks</div>
+<div id="auth-signup-fields" style="display:none"><input class="auth-input" id="auth-username" placeholder="Username"/></div>
+<input class="auth-input" id="auth-email" placeholder="Email"/>
+<input class="auth-input" id="auth-password" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()"/>
+<div class="auth-error" id="auth-error"></div>
+<button class="auth-btn" onclick="authSubmit()" id="auth-main-btn">Sign In</button>
+<div class="auth-switch" id="auth-switch">No account?<a onclick="toggleAuth()">Sign up</a>— you get 100 free Peels</div>
+<div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,215,0,0.15)">
+<button onclick="showAdminLogin()" style="background:transparent;border:1px solid rgba(255,215,0,0.3);color:rgba(255,215,0,0.6);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">Admin Login</button>
+</div>
+</div>
 </div>
 
 <!-- Admin login modal -->
 <div class="modal-overlay" id="admin-modal" style="display:none">
-  <div class="modal-box">
-    <h3>🔑 Admin Login</h3>
-    <input class="modal-input" id="admin-pass-input" type="password" placeholder="Admin password" onkeydown="if(event.key==='Enter')submitAdminLogin()"/>
-    <div class="auth-error" id="admin-pass-error"></div>
-    <div class="modal-btns"><button class="modal-cancel" onclick="closeModal('admin-modal')">Cancel</button><button class="modal-confirm" onclick="submitAdminLogin()">Enter</button></div>
-  </div>
+<div class="modal-box">
+<h3>Admin Login</h3>
+<input class="modal-input" id="admin-pass-input" type="password" placeholder="Admin password" onkeydown="if(event.key==='Enter')submitAdminLogin()"/>
+<div class="auth-error" id="admin-pass-error"></div>
+<div class="modal-btns"><button class="modal-cancel" onclick="closeModal('admin-modal')">Cancel</button><button class="modal-confirm" onclick="submitAdminLogin()">Enter</button></div>
+</div>
 </div>
 
 <!-- Resolve modal -->
 <div class="modal-overlay" id="resolve-modal" style="display:none">
-  <div class="modal-box">
-    <h3>Confirm Result</h3>
-    <p id="resolve-body" style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:16px"></p>
-    <div class="modal-btns"><button class="modal-cancel" onclick="closeModal('resolve-modal')">Cancel</button><button class="modal-confirm" onclick="confirmResolve()">Confirm</button></div>
-  </div>
+<div class="modal-box">
+<h3>Confirm Result</h3>
+<p id="resolve-body" style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:16px"></p>
+<div class="modal-btns"><button class="modal-cancel" onclick="closeModal('resolve-modal')">Cancel</button><button class="modal-confirm" onclick="confirmResolve()">Confirm</button></div>
+</div>
 </div>
 
 <!-- Adjust modal -->
 <div class="modal-overlay" id="adjust-modal" style="display:none">
-  <div class="modal-box">
-    <h3 id="adjust-title">Adjust Peels</h3>
-    <input class="modal-input" id="adjust-input" type="number" placeholder="Amount (use - to subtract)" onkeydown="if(event.key==='Enter')confirmAdjust()"/>
-    <div class="auth-error" id="adjust-error"></div>
-    <div class="modal-btns"><button class="modal-cancel" onclick="closeModal('adjust-modal')">Cancel</button><button class="modal-confirm" onclick="confirmAdjust()">Confirm</button></div>
-  </div>
+<div class="modal-box">
+<h3 id="adjust-title">Adjust Peels</h3>
+<input class="modal-input" id="adjust-input" type="number" placeholder="Amount (use - to subtract)" onkeydown="if(event.key==='Enter')confirmAdjust()"/>
+<div class="auth-error" id="adjust-error"></div>
+<div class="modal-btns"><button class="modal-cancel" onclick="closeModal('adjust-modal')">Cancel</button><button class="modal-confirm" onclick="confirmAdjust()">Confirm</button></div>
+</div>
 </div>
 
 <!-- Logout modal -->
 <div class="modal-overlay" id="logout-modal" style="display:none">
-  <div class="modal-box">
-    <h3>👋 Account</h3>
-    <p style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:16px">Signed in as <strong id="logout-name" style="color:#FFD700"></strong>.</p>
-    <div id="logout-admin-btn" style="display:none;margin-bottom:10px">
-      <button onclick="closeModal('logout-modal');showAdminLogin()" style="width:100%;background:transparent;border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;">🔑 Enter Admin Mode</button>
-    </div>
-    <div class="modal-btns"><button class="modal-cancel" onclick="closeModal('logout-modal')">Stay</button><button class="modal-confirm" onclick="logout()">Sign Out</button></div>
-  </div>
+<div class="modal-box">
+<h3>Account</h3>
+<p style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:16px">Signed in as<strong id="logout-name" style="color:#FFD700"></strong>.</p>
+<div id="logout-admin-btn" style="display:none;margin-bottom:10px">
+<button onclick="closeModal('logout-modal');showAdminLogin()" style="width:100%;background:transparent;border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;">Enter Admin Mode</button>
+</div>
+<div class="modal-btns"><button class="modal-cancel" onclick="closeModal('logout-modal')">Stay</button><button class="modal-confirm" onclick="logout()">Sign Out</button></div>
+</div>
 </div>
 
 <!-- Edit game modal -->
 <div class="modal-overlay" id="edit-game-modal" style="display:none">
-  <div class="modal-box">
-    <h3>✏️ Edit Game</h3>
-    <input type="hidden" id="edit-game-id"/>
-    <div class="grid2">
-      <div class="input-group"><label>Team 1 Name</label><input id="edit-t1"/></div>
-      <div class="input-group"><label>Team 2 Name</label><input id="edit-t2"/></div>
-    </div>
-    <div class="grid2">
-      <div class="input-group">
-        <label>Team 1 Win %</label>
-        <div class="win-pct-row" style="margin-bottom:0">
-          <input id="edit-wp1" type="number" min="1" max="99" oninput="syncEditWinPct(1)"/>
-          <div class="calc-pill" id="edit-odds-1">—</div>
-        </div>
-      </div>
-      <div class="input-group">
-        <label>Team 2 Win % (auto)</label>
-        <div class="win-pct-row" style="margin-bottom:0">
-          <input id="edit-wp2" type="number" min="1" max="99" oninput="syncEditWinPct(2)"/>
-          <div class="calc-pill" id="edit-odds-2">—</div>
-        </div>
-      </div>
-    </div>
-    <div class="grid2">
-      <div class="input-group"><label>Game Date/Time</label><input id="edit-date" type="datetime-local"/></div>
-      <div class="input-group"><label>Betting Locks At</label><input id="edit-lock" type="datetime-local"/></div>
-    </div>
-    <p style="font-size:12px;color:rgba(255,215,0,0.5);margin-bottom:12px">⚠️ Existing bets keep their original odds — only new bets use updated odds.</p>
-    <div class="auth-error" id="edit-game-error"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal('edit-game-modal')">Cancel</button>
-      <button class="modal-confirm" onclick="saveEditGame()">Save Changes</button>
-    </div>
-  </div>
+<div class="modal-box">
+<h3>️ Edit Game</h3>
+<input type="hidden" id="edit-game-id"/>
+<div class="grid2">
+<div class="input-group"><label>Team 1 Name</label><input id="edit-t1"/></div>
+<div class="input-group"><label>Team 2 Name</label><input id="edit-t2"/></div>
+</div>
+<div class="grid2">
+<div class="input-group">
+<label>Team 1 Win %</label>
+<div class="win-pct-row" style="margin-bottom:0">
+<input id="edit-wp1" type="number" min="1" max="99" oninput="syncEditWinPct(1)"/>
+<div class="calc-pill" id="edit-odds-1">—</div>
+</div>
+</div>
+<div class="input-group">
+<label>Team 2 Win % (auto)</label>
+<div class="win-pct-row" style="margin-bottom:0">
+<input id="edit-wp2" type="number" min="1" max="99" oninput="syncEditWinPct(2)"/>
+<div class="calc-pill" id="edit-odds-2">—</div>
+</div>
+</div>
+</div>
+<div class="grid2">
+<div class="input-group"><label>Game Date/Time</label><input id="edit-date" type="datetime-local"/></div>
+<div class="input-group"><label>Betting Locks At</label><input id="edit-lock" type="datetime-local"/></div>
+</div>
+<p style="font-size:12px;color:rgba(255,215,0,0.5);margin-bottom:12px">️ Existing bets keep their original odds — only new bets use updated odds.</p>
+<div class="auth-error" id="edit-game-error"></div>
+<div class="modal-btns">
+<button class="modal-cancel" onclick="closeModal('edit-game-modal')">Cancel</button>
+<button class="modal-confirm" onclick="saveEditGame()">Save Changes</button>
+</div>
+</div>
 </div>
 
 <!-- Card reveal overlay -->
 <div id="card-reveal-overlay" style="display:none" class="card-reveal-overlay">
-  <div style="font-family:'Bangers',cursive;font-size:28px;color:#FFD700;letter-spacing:2px">You got...</div>
-  <div class="card-reveal-box" id="card-reveal-box"></div>
-  <button class="reveal-close" onclick="closeReveal()">Sweet! 🍌</button>
+<div style="font-family:'Bangers',cursive;font-size:28px;color:#FFD700;letter-spacing:2px">You got...</div>
+<div class="card-reveal-box" id="card-reveal-box"></div>
+<button class="reveal-close" onclick="closeReveal()">Sweet!</button>
 </div>
 
 <!-- Admin: Create Player Card modal -->
 <div class="modal-overlay" id="create-card-modal" style="display:none">
-  <div class="modal-box">
-    <h3>🃏 Create Player Card</h3>
-    <div class="input-group"><label>Player Name</label><input id="cc-player" placeholder="e.g. Billy the Kid"/></div>
-    <div class="input-group"><label>Team / Description</label><input id="cc-team" placeholder="e.g. Savannah Bananas"/></div>
-    <div class="input-group"><label>Position</label>
-      <select id="cc-position">
-        <option value="">No position</option>
-        <option value="Batter">Batter</option>
-        <option value="Pitcher">Pitcher</option>
-      </select>
-    </div>
-    <div class="input-group"><label>Packs (select multiple)</label>
-      <select id="cc-pack-select" multiple style="height:100px"></select>
-    </div>
-    <p style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:-8px;margin-bottom:8px">Hold Ctrl/Cmd to select multiple packs</p>
-    <div class="auth-error" id="cc-error"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal('create-card-modal')">Cancel</button>
-      <button class="modal-confirm" onclick="createPlayerCard()">Create Card</button>
-    </div>
-  </div>
+<div class="modal-box">
+<h3>🃏 Create Player Card</h3>
+<div class="input-group"><label>Player Name</label><input id="cc-player" placeholder="e.g. Billy the Kid"/></div>
+<div class="input-group"><label>Team / Description</label><input id="cc-team" placeholder="e.g. Savannah Bananas"/></div>
+<div class="input-group"><label>Position</label>
+<select id="cc-position">
+<option value="">No position</option>
+<option value="Batter">Batter</option>
+<option value="Pitcher">Pitcher</option>
+</select>
+</div>
+<div class="input-group"><label>Packs (select multiple)</label>
+<select id="cc-pack-select" multiple style="height:100px"></select>
+</div>
+<p style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:-8px;margin-bottom:8px">Hold Ctrl/Cmd to select multiple packs</p>
+<div class="auth-error" id="cc-error"></div>
+<div class="modal-btns">
+<button class="modal-cancel" onclick="closeModal('create-card-modal')">Cancel</button>
+<button class="modal-confirm" onclick="createPlayerCard()">Create Card</button>
+</div>
+</div>
 </div>
 
 <!-- Admin: Create Pack modal -->
 <div class="modal-overlay" id="create-pack-modal" style="display:none">
-  <div class="modal-box">
-    <h3>🎁 Create Pack</h3>
-    <div class="input-group"><label>Pack Name</label><input id="cp-name" placeholder="e.g. Savannah Bananas Pack"/></div>
-    <div class="input-group"><label>Price (Peels)</label><input id="cp-price" type="number" value="200" min="1"/></div>
-    <div class="input-group"><label>Common % (e.g. 60)</label><input id="cp-common" type="number" value="60" min="0" max="100"/></div>
-    <div class="input-group"><label>Rare % (e.g. 30)</label><input id="cp-rare" type="number" value="30" min="0" max="100"/></div>
-    <div class="input-group"><label>Legendary % (e.g. 8)</label><input id="cp-legendary" type="number" value="8" min="0" max="100"/></div>
-    <div class="input-group"><label>Mythic % (e.g. 2)</label><input id="cp-mythic" type="number" value="2" min="0" max="100"/></div>
-    <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:8px">Note: percentages should add up to 100</div>
-    <div class="auth-error" id="cp-error"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal('create-pack-modal')">Cancel</button>
-      <button class="modal-confirm" onclick="createPack()">Create Pack</button>
-    </div>
-  </div>
+<div class="modal-box">
+<h3>Create Pack</h3>
+<div class="input-group"><label>Pack Name</label><input id="cp-name" placeholder="e.g. Savannah Bananas Pack"/></div>
+<div class="input-group"><label>Price (Peels)</label><input id="cp-price" type="number" value="200" min="1"/></div>
+<div class="input-group"><label>Common % (e.g. 60)</label><input id="cp-common" type="number" value="60" min="0" max="100"/></div>
+<div class="input-group"><label>Rare % (e.g. 30)</label><input id="cp-rare" type="number" value="30" min="0" max="100"/></div>
+<div class="input-group"><label>Legendary % (e.g. 8)</label><input id="cp-legendary" type="number" value="8" min="0" max="100"/></div>
+<div class="input-group"><label>Mythic % (e.g. 2)</label><input id="cp-mythic" type="number" value="2" min="0" max="100"/></div>
+<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:8px">Note: percentages should add up to 100</div>
+<div class="auth-error" id="cp-error"></div>
+<div class="modal-btns">
+<button class="modal-cancel" onclick="closeModal('create-pack-modal')">Cancel</button>
+<button class="modal-confirm" onclick="createPack()">Create Pack</button>
+</div>
+</div>
 </div>
 
 <!-- Admin: Enter Player Stats modal -->
 <div class="modal-overlay" id="player-stats-modal" style="display:none">
-  <div class="modal-box">
-    <h3>📊 Enter Player Stats</h3>
-    <p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px">All card holders of this player earn Peels automatically based on their card multiplier.</p>
-    <div class="input-group"><label>Select Player</label>
-      <select id="ps-player-select"></select>
-    </div>
-    <div class="input-group"><label>Base Peels Earned (before multiplier)</label><input id="ps-base-peels" type="number" placeholder="e.g. 50" min="0"/></div>
-    <div class="input-group"><label>Notes (optional, e.g. "3 HRs vs Party Animals")</label><input id="ps-notes" placeholder="Optional notes"/></div>
-    <div class="auth-error" id="ps-error"></div>
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeModal('player-stats-modal')">Cancel</button>
-      <button class="modal-confirm" onclick="submitPlayerStats()">Pay Out Cards</button>
-    </div>
-  </div>
+<div class="modal-box">
+<h3>Enter Player Stats</h3>
+<p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px">All card holders of this player earn Peels automatically based on their card multiplier.</p>
+<div class="input-group"><label>Select Player</label>
+<select id="ps-player-select"></select>
+</div>
+<div class="input-group"><label>Base Peels Earned (before multiplier)</label><input id="ps-base-peels" type="number" placeholder="e.g. 50" min="0"/></div>
+<div class="input-group"><label>Notes (optional, e.g."3 HRs vs Party Animals")</label><input id="ps-notes" placeholder="Optional notes"/></div>
+<div class="auth-error" id="ps-error"></div>
+<div class="modal-btns">
+<button class="modal-cancel" onclick="closeModal('player-stats-modal')">Cancel</button>
+<button class="modal-confirm" onclick="submitPlayerStats()">Pay Out Cards</button>
+</div>
+</div>
 </div>
 
 <!-- Starter card picker -->
 <div class="modal-overlay" id="starter-card-modal" style="display:none">
-  <div class="modal-box">
-    <h3>🎁 Pick Your Starter Card!</h3>
-    <p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:14px">Choose any player — you'll get them as a Common card to start your collection!</p>
-    <input class="search-box" id="starter-search" placeholder="Search players..." oninput="filterStarterPlayers()" style="margin-bottom:10px"/>
-    <div class="team-list" id="starter-player-list" style="max-height:300px;overflow-y:auto"></div>
-    <div class="auth-error" id="starter-error"></div>
-  </div>
+<div class="modal-box">
+<h3>Pick Your Starter Card!</h3>
+<p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:14px">Choose any player — you'll get them as a Common card to start your collection!</p>
+<input class="search-box" id="starter-search" placeholder="Search players..." oninput="filterStarterPlayers()" style="margin-bottom:10px"/>
+<div class="team-list" id="starter-player-list" style="max-height:300px;overflow-y:auto"></div>
+<div class="auth-error" id="starter-error"></div>
+</div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-  // ============================================================
-  // 🍌 STEP 1: PASTE YOUR SUPABASE CREDENTIALS HERE
-  // ============================================================
-  const SUPABASE_URL = 'https://egnbjvbcttafemsyekjw.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmJqdmJjdHRhZmVtc3lla2p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NDgyNzQsImV4cCI6MjA5NTEyNDI3NH0.x8ukqsRCXAeNQ3pe-VCmRoMI2p-wlVI11UfVQ__-wYQ';
-  // ============================================================
-
-  const ADMIN_CODE = 'bananas2024'; // Change this to whatever you want
-  const HOUSE_EDGE = 0.05;
-
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  let currentUser = null;
-  let currentProfile = null;
-  let isSignup = false;
-  let picks = {};
-  let pendingResolve = {};
-  let pendingAdjust = {};
-
-  // ─── Payout formula ───────────────────────────────────────
-  function calcPayout(winPct) {
-    const p = Math.max(1, Math.min(99, winPct)) / 100;
-    return Math.max(1.1, Math.round((1 / p) * (1 - HOUSE_EDGE) * 10) / 10);
-  }
-
-  // ─── Helpers ──────────────────────────────────────────────
-  function toast(msg, dur = 2400) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.classList.add('show');
-    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), dur);
-  }
-  function setError(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg; }
-  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-  // ─── Feedback ───────────────────────────────────────────────
-  async function submitFeedback() {
-    setError('feedback-error', '');
-    const text = document.getElementById('feedback-text').value.trim();
-    if (!text) { setError('feedback-error', 'Please write some feedback first.'); return; }
-    const btn = document.getElementById('feedback-submit-btn');
-    btn.textContent = 'Sending...'; btn.disabled = true;
-    try {
-      const res = await fetch('https://formspree.io/f/mojzgzlkD', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          from_user: currentProfile?.username || 'Unknown',
-          email: currentUser?.email || 'Unknown',
-          app: "Peels Pick'em"
-        })
-      });
-      if (res.ok) {
-        document.getElementById('feedback-text').value = '';
-        toast('Feedback sent! Thank you! 🍌');
-      } else {
-        setError('feedback-error', 'Something went wrong. Try again.');
-      }
-    } catch(e) {
-      setError('feedback-error', 'Error: ' + e.message);
-    }
-    btn.textContent = 'Send Feedback'; btn.disabled = false;
-  }
-
-  // ─── Bot accounts ───────────────────────────────────────────
-  async function addBot() {
-    const name = document.getElementById('bot-name').value.trim();
-    const peels = parseInt(document.getElementById('bot-peels').value) || 100;
-    if (!name) { toast('Enter a bot name.'); return; }
-    const fakeId = crypto.randomUUID ? crypto.randomUUID() : 'bot-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-    const { error } = await supabase.from('profiles').insert({
-      id: fakeId, username: name, peels, is_admin: false, is_bot: true
-    });
-    if (error) { toast('Error adding bot: ' + error.message); return; }
-    document.getElementById('bot-name').value = '';
-    document.getElementById('bot-peels').value = '100';
-    toast('Bot added! 🤖');
-    renderAdminBots();
-    renderLeaderboard();
-  }
-
-  async function renderAdminBots() {
-    const el = document.getElementById('admin-bots-list');
-    if (!el) return;
-    const { data: bots } = await supabase.from('profiles').select('id, username, peels').eq('is_bot', true).order('username');
-    if (!bots?.length) { el.innerHTML = '<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No bots yet</div>'; return; }
-    el.innerHTML = bots.map(b => `
-      <div class="admin-game-item">
-        <div class="admin-game-info"><strong>${escapeHtml(b.username)}</strong> <span style="color:rgba(255,255,255,0.4);font-size:12px">🤖 bot</span></div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-family:'Bangers',cursive;color:#FFD700;font-size:16px">${Math.round(b.peels)} 🍌</span>
-          <button class="result-btn bot-adjust-btn" data-bot-id="${b.id}" data-bot-name="${escapeAttr(b.username)}" style="padding:5px 10px;font-size:12px">Adjust</button>
-          <button class="result-btn bot-delete-btn" data-bot-id="${b.id}" style="padding:5px 10px;font-size:12px;color:#ff7675;border-color:rgba(255,118,117,0.4)">Remove</button>
-        </div>
-      </div>`).join('');
-  }
-
-  document.addEventListener('click', function(e) {
-    const adjustBtn = e.target.closest('.bot-adjust-btn');
-    if (adjustBtn) {
-      const newVal = prompt('Set new Peels amount for ' + adjustBtn.dataset.botName + ':');
-      if (newVal !== null && !isNaN(parseFloat(newVal))) {
-        supabase.from('profiles').update({ peels: Math.round(parseFloat(newVal)) }).eq('id', adjustBtn.dataset.botId).then(() => {
-          toast('Bot updated! 🤖');
-          renderAdminBots();
-          renderLeaderboard();
-        });
-      }
-      return;
-    }
-    const deleteBtn = e.target.closest('.bot-delete-btn');
-    if (deleteBtn) {
-      if (confirm('Remove this bot from the leaderboard?')) {
-        supabase.from('profiles').delete().eq('id', deleteBtn.dataset.botId).then(() => {
-          toast('Bot removed.');
-          renderAdminBots();
-          renderLeaderboard();
-        });
-      }
-      return;
-    }
-  });
-
-  function escapeHtml(str) {
-    if (str === null || str === undefined) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-  function escapeAttr(str) {
-    if (str === null || str === undefined) return '';
-    return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
-  function showPage(p, btn) {
-    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-    document.getElementById('page-' + p).classList.add('active');
-    if (btn) btn.classList.add('active');
-    ({ games: renderGames, mybets: renderMyBets, leaderboard: renderLeaderboard, admin: renderAdmin, cards: renderCardsPage })[p]?.();
-  }
-
-  // ─── Auth ─────────────────────────────────────────────────
-  function toggleAuth() {
-    isSignup = !isSignup;
-    document.getElementById('auth-sub').textContent = isSignup ? 'Create your account — 100 free Peels!' : 'Sign in to place your picks';
-    document.getElementById('auth-signup-fields').style.display = isSignup ? 'block' : 'none';
-    document.getElementById('auth-main-btn').textContent = isSignup ? 'Sign Up' : 'Sign In';
-    document.getElementById('auth-switch').innerHTML = isSignup
-      ? 'Have an account? <a onclick="toggleAuth()">Sign in</a>'
-      : 'No account? <a onclick="toggleAuth()">Sign up</a> — you get 100 free Peels 🍌';
-    setError('auth-error', '');
-  }
-
-  async function authSubmit() {
-    try {
-      setError('auth-error', '');
-      const email = document.getElementById('auth-email').value.trim();
-      const pass = document.getElementById('auth-password').value;
-      if (!email || !pass) { setError('auth-error', 'Please fill in all fields.'); return; }
-      const btn = document.getElementById('auth-main-btn');
-      btn.textContent = '...'; btn.disabled = true;
-
-      if (isSignup) {
-        const username = document.getElementById('auth-username').value.trim();
-        if (!username) { setError('auth-error', 'Enter a username.'); btn.textContent = 'Sign Up'; btn.disabled = false; return; }
-        const { data, error } = await supabase.auth.signUp({ email, password: pass });
-        if (error) { setError('auth-error', error.message); btn.textContent = 'Sign Up'; btn.disabled = false; return; }
-        await supabase.from('profiles').insert({ id: data.user.id, username, peels: 100, is_admin: false });
-        // Show starter card picker after login
-        setTimeout(() => showStarterCardPicker(data.user.id), 800);
-        toast('Welcome! You have 100 Peels! Pick your free starter card 🍌🃏');
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-        if (error) { setError('auth-error', 'Incorrect email or password.'); btn.textContent = 'Sign In'; btn.disabled = false; return; }
-      }
-      btn.textContent = isSignup ? 'Sign Up' : 'Sign In'; btn.disabled = false;
-    } catch(e) {
-      setError('auth-error', 'Error: ' + e.message);
-      const btn = document.getElementById('auth-main-btn');
-      btn.textContent = isSignup ? 'Sign Up' : 'Sign In'; btn.disabled = false;
-    }
-  }
-
-  function showAdminLogin() {
-    document.getElementById('admin-pass-input').value = '';
-    setError('admin-pass-error', '');
-    document.getElementById('admin-modal').style.display = 'flex';
-    setTimeout(() => document.getElementById('admin-pass-input').focus(), 100);
-  }
-
-  async function submitAdminLogin() {
-    const pass = document.getElementById('admin-pass-input').value;
-    if (pass === ADMIN_CODE) {
-      closeModal('admin-modal');
-      // Mark current profile as admin session (just sets a flag in memory)
-      if (currentProfile) {
-        currentProfile.is_admin = true;
-        document.getElementById('nav-admin').style.display = '';
-        toast('Admin mode activated 🔑');
-        renderAdmin();
-      } else {
-        toast('Sign in to your account first, then use Admin Login.');
-      }
-    } else {
-      setError('admin-pass-error', 'Wrong password.');
-      document.getElementById('admin-pass-input').value = '';
-      document.getElementById('admin-pass-input').focus();
-    }
-  }
-
-  async function loadProfile(userId) {
-    const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
-    return data;
-  }
-
-  function applyProfile(profile) {
-    currentProfile = profile;
-    document.getElementById('auth-overlay').style.display = 'none';
-    document.getElementById('header-name').textContent = profile.username;
-    document.getElementById('header-peels').textContent = Math.round(profile.peels) + ' 🍌';
-    document.getElementById('nav-admin').style.display = profile.is_admin ? '' : 'none';
-  }
-
-  function showLogout() {
-    if (!currentUser) return;
-    document.getElementById('logout-name').textContent = currentProfile?.username || currentUser.email;
-    document.getElementById('logout-admin-btn').style.display = currentProfile?.is_admin ? 'none' : 'block';
-    document.getElementById('logout-modal').style.display = 'flex';
-  }
-
-  async function logout() {
-    try {
-      await supabase.auth.signOut();
-    } catch(e) {}
-    currentUser = null; currentProfile = null;
-    closeModal('logout-modal');
-    document.getElementById('auth-overlay').style.display = 'flex';
-    document.getElementById('header-name').textContent = 'Guest';
-    document.getElementById('header-peels').textContent = '0 🍌';
-    document.getElementById('nav-admin').style.display = 'none';
-    document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(x => x.classList.remove('active'));
-    document.getElementById('page-games').classList.add('active');
-    document.getElementById('nav-games').classList.add('active');
-    renderGames();
-  }
-
-  async function refreshHeader() {
-    if (!currentUser) return;
-    const profile = await loadProfile(currentUser.id);
-    if (profile) {
-      currentProfile = { ...currentProfile, ...profile };
-      document.getElementById('header-peels').textContent = Math.round(profile.peels) + ' 🍌';
-    }
-  }
-
-  // ─── Games page ───────────────────────────────────────────
-  async function renderGames() {
-    const el = document.getElementById('games-list');
-    el.innerHTML = '<div class="loading"><span class="spinner"></span>Loading games...</div>';
-    const { data: games } = await supabase.from('games').select('*').eq('status', 'open').order('created_at', { ascending: false });
-    if (!games || !games.length) { el.innerHTML = '<div class="no-games">No active games right now.<br>Check back soon! 🍌</div>'; return; }
-
-    let userBets = [];
-    if (currentUser) {
-      const { data } = await supabase.from('bets').select('*').eq('user_id', currentUser.id).eq('status', 'pending');
-      userBets = data || [];
-    }
-
-    el.innerHTML = games.map(g => {
-      const userBet = userBets.find(b => b.game_id === g.id);
-      const o1 = calcPayout(g.wp1), o2 = calcPayout(g.wp2);
-      const isLocked = g.lock_time && new Date() >= new Date(g.lock_time);
-      return `<div class="game-card">
-        <div class="game-teams">
-          <div class="team"><div class="team-name">${g.t1}</div><div class="team-odds-pill">${g.wp1}% win · ${o1}x</div></div>
-          <div class="vs">VS</div>
-          <div class="team"><div class="team-name">${g.t2}</div><div class="team-odds-pill">${g.wp2}% win · ${o2}x</div></div>
-        </div>
-        ${g.game_date ? `<div class="game-date">${new Date(g.game_date).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
-        ${isLocked
-          ? `<div style="text-align:center;padding:10px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:10px;font-size:13px;color:#ff7675">🔒 Betting is locked — game in progress</div>`
-          : userBet
-            ? `<div style="text-align:center;padding:10px;background:rgba(255,215,0,0.1);border-radius:10px;font-size:13px;color:#FFD700">✅ Bet on <strong>${userBet.pick}</strong> — ${userBet.wager} Peels → ${userBet.potential} if win</div>`
-            : `<div class="pick-buttons">
-                <button class="pick-btn" id="pb-${g.id}-1" onclick="selectPick('${g.id}','${g.t1}',${o1})">${g.t1}<span class="btn-payout">Win → ${o1}x payout</span></button>
-                <button class="pick-btn" id="pb-${g.id}-2" onclick="selectPick('${g.id}','${g.t2}',${o2})">${g.t2}<span class="btn-payout">Win → ${o2}x payout</span></button>
-              </div>
-              <div class="wager-row">
-                <input class="wager-input" type="number" id="wager-${g.id}" placeholder="Peels to wager" min="1" step="1" oninput="updatePreview('${g.id}')"/>
-                <button class="place-btn" id="placebtn-${g.id}" onclick="placeBet('${g.id}')">Place Bet</button>
-              </div>
-              <div class="payout-preview" id="preview-${g.id}"></div>`}
-      </div>`;
-    }).join('');
-  }
-
-  function selectPick(gameId, team, odds) {
-    picks[gameId] = { team, odds };
-    document.querySelectorAll(`[id^="pb-${gameId}-"]`).forEach(b => b.classList.toggle('selected', b.textContent.startsWith(team)));
-    updatePreview(gameId);
-  }
-
-  function updatePreview(gameId) {
-    const w = parseFloat(document.getElementById('wager-' + gameId)?.value) || 0;
-    const p = document.getElementById('preview-' + gameId);
-    const pick = picks[gameId];
-    if (p) p.textContent = (w > 0 && pick) ? `Betting on ${pick.team} → win ${Math.round(w * pick.odds)} Peels` : '';
-  }
-
-  async function placeBet(gameId) {
-    if (!currentUser) { toast('Sign in first!'); return; }
-    const pick = picks[gameId];
-    if (!pick) { toast('Choose a team first!'); return; }
-    const wager = parseFloat(document.getElementById('wager-' + gameId)?.value);
-    if (!wager || wager <= 0) { toast('Enter a valid wager'); return; }
-    if (wager > currentProfile.peels) { toast('Not enough Peels! 🍌'); return; }
-
-    const btn = document.getElementById('placebtn-' + gameId);
-    if (btn) { btn.disabled = true; btn.textContent = '...'; }
-
-    const wagerRounded = Math.round(wager);
-    const potential = Math.round(wagerRounded * pick.odds);
-    const newPeels = Math.round(currentProfile.peels - wagerRounded);
-
-    const { error: betError } = await supabase.from('bets').insert({
-      user_id: currentUser.id, game_id: gameId, pick: pick.team,
-      odds: pick.odds, wager: wagerRounded, status: 'pending', potential
-    });
-    if (betError) { toast('Error placing bet. Try again.'); if (btn) { btn.disabled = false; btn.textContent = 'Place Bet'; } return; }
-
-    await supabase.from('profiles').update({ peels: newPeels }).eq('id', currentUser.id);
-    currentProfile.peels = newPeels;
-
-    await refreshHeader();
-    renderGames();
-    toast(`Bet placed! ${wagerRounded} Peels on ${pick.team} 🍌`);
-  }
-
-  // ─── My Bets page ─────────────────────────────────────────
-  async function renderMyBets() {
-    if (!currentUser) return;
-    const { data: myBets } = await supabase.from('bets').select('*, games(t1, t2)').eq('user_id', currentUser.id).order('created_at', { ascending: false });
-    const bets = myBets || [];
-    const won = bets.filter(b => b.status === 'won').length;
-    const pending = bets.filter(b => b.status === 'pending').length;
-    document.getElementById('my-bets-stats').innerHTML = `
-      <div class="stat-box"><div class="stat-num">${pending}</div><div class="stat-lbl">Pending</div></div>
-      <div class="stat-box"><div class="stat-num" style="color:#6fcf97">${won}</div><div class="stat-lbl">Won</div></div>`;
-    const el = document.getElementById('my-bets-list');
-    if (!bets.length) { el.innerHTML = '<div class="no-games">No bets yet. Go make some picks! 🍌</div>'; return; }
-    el.innerHTML = bets.map(b => `
-      <div class="bet-item">
-        <div>
-          <div style="font-weight:600;font-size:14px">${b.games ? b.games.t1 + ' vs ' + b.games.t2 : 'Game'}</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">Pick: ${b.pick} (${b.odds}x) · ${b.wager} Peels → ${b.potential} if win</div>
-        </div>
-        <span class="bet-status status-${b.status}">${b.status}</span>
-      </div>`).join('');
-  }
-
-  // ─── Leaderboard ──────────────────────────────────────────
-  async function renderLeaderboard() {
-    const el = document.getElementById('lb-list');
-    el.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
-    const { data } = await supabase.from('profiles').select('username, peels').eq('is_admin', false).order('peels', { ascending: false });
-    const players = data || [];
-    if (!players.length) { el.innerHTML = '<div class="no-games">No players yet!</div>'; return; }
-    el.innerHTML = players.map((u, i) => `
-      <div class="lb-row">
-        <div class="lb-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</div>
-        <div class="lb-name">${u.username}${currentProfile && u.username === currentProfile.username ? ' <span style="font-size:11px;color:rgba(255,215,0,0.4)">(you)</span>' : ''}</div>
-        <div class="lb-peels">${Math.round(u.peels)} <span>Peels</span></div>
-      </div>`).join('');
-  }
-
-  // ─── Admin ────────────────────────────────────────────────
-  function syncWinPct(changed) {
-    const v = parseFloat(document.getElementById('a-wp' + changed).value);
-    if (!isNaN(v) && v >= 1 && v <= 99) document.getElementById('a-wp' + (changed === 1 ? 2 : 1)).value = Math.max(1, Math.min(99, 100 - v));
-    updateOddsPreview();
-  }
-
-  function updateOddsPreview() {
-    const t1 = document.getElementById('a-t1').value.trim() || 'Team 1';
-    const t2 = document.getElementById('a-t2').value.trim() || 'Team 2';
-    const wp1 = parseFloat(document.getElementById('a-wp1').value);
-    const wp2 = parseFloat(document.getElementById('a-wp2').value);
-    if (isNaN(wp1) || isNaN(wp2)) {
-      document.getElementById('preview-odds-1').textContent = '—';
-      document.getElementById('preview-odds-2').textContent = '—';
-      document.getElementById('odds-preview-box').style.display = 'none';
-      return;
-    }
-    const o1 = calcPayout(wp1), o2 = calcPayout(wp2);
-    document.getElementById('preview-odds-1').textContent = o1 + 'x';
-    document.getElementById('preview-odds-2').textContent = o2 + 'x';
-    document.getElementById('odds-preview-box').style.display = 'flex';
-    const fav = wp1 >= wp2 ? `${t1} (${wp1}%) → ${o1}x` : `${t2} (${wp2}%) → ${o2}x`;
-    const dog = wp1 < wp2 ? `${t1} (${wp1}%) → ${o1}x` : `${t2} (${wp2}%) → ${o2}x`;
-    document.getElementById('fav-label').textContent = fav;
-    document.getElementById('dog-label').textContent = dog;
-  }
-
-  async function addGame() {
-    const t1 = document.getElementById('a-t1').value.trim();
-    const t2 = document.getElementById('a-t2').value.trim();
-    const wp1 = parseFloat(document.getElementById('a-wp1').value);
-    const wp2 = parseFloat(document.getElementById('a-wp2').value);
-    const date = document.getElementById('a-date').value;
-    const lock = date; // Lock time = game start time
-    if (!t1 || !t2) { toast('Enter both team names'); return; }
-    if (isNaN(wp1) || isNaN(wp2) || wp1 < 1 || wp2 < 1) { toast('Enter valid win percentages'); return; }
-    // Convert local datetime to UTC for storage
-    const toUTC = (local) => local ? new Date(local).toISOString() : null;
-    const { error } = await supabase.from('games').insert({ t1, t2, wp1, wp2, game_date: toUTC(date), lock_time: toUTC(lock), status: 'open' });
-    if (error) { toast('Error adding game: ' + error.message); return; }
-    ['a-t1', 'a-t2', 'a-wp1', 'a-wp2', 'a-date'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('preview-odds-1').textContent = '—';
-    document.getElementById('preview-odds-2').textContent = '—';
-    document.getElementById('odds-preview-box').style.display = 'none';
-    toast('Game added! 🍌'); renderAdminGames();
-  }
-
-  async function renderAdmin() {
-    await Promise.all([renderAdminGames(), renderAdminPlayers(), renderAdminBots()]);
-    renderAdminCardsSection();
-  }
-
-  async function renderAdminGames() {
-    const el = document.getElementById('admin-games-list');
-    el.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
-    const { data: games } = await supabase.from('games').select('*').order('created_at', { ascending: false });
-    window._adminGamesCache = games || [];
-    if (!games || !games.length) { el.innerHTML = '<div class="no-games" style="padding:16px">No games added yet.</div>'; return; }
-    el.innerHTML = games.map(g => `
-      <div class="admin-game-item">
-        <div class="admin-game-info">
-          <strong>${escapeHtml(g.t1)} (${g.wp1}%) vs ${escapeHtml(g.t2)} (${g.wp2}%)</strong>
-          <small>Payouts: ${calcPayout(g.wp1)}x / ${calcPayout(g.wp2)}x${g.game_date ? ' · ' + new Date(g.game_date).toLocaleDateString() : ''}${g.status === 'closed' ? '<span class="closed-tag">closed</span>' : ''}</small>
-        </div>
-        ${g.status === 'open'
-          ? `<div style="display:flex;flex-direction:column;gap:6px;min-width:180px">
-              <div class="result-btns">
-                <button class="result-btn admin-resolve-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" data-game-id="${g.id}" data-winner="${escapeAttr(g.t1)}">${escapeHtml(g.t1)} wins</button>
-                <button class="result-btn admin-resolve-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" data-game-id="${g.id}" data-winner="${escapeAttr(g.t2)}">${escapeHtml(g.t2)} wins</button>
-              </div>
-              <button class="result-btn admin-edit-btn" style="color:#60a5fa;border-color:rgba(96,165,250,0.4);width:100%" data-game-id="${g.id}">✏️ Edit Game</button>
-            </div>`
-          : `<span style="font-size:12px;color:rgba(255,255,255,0.3)">Winner: ${escapeHtml(g.winner) || '—'}</span>`}
-      </div>`).join('');
-  }
-
-  // Event delegation for admin games list - survives re-renders, no inline onclick issues
-  document.addEventListener('click', function(e) {
-    const resolveBtn = e.target.closest('.admin-resolve-btn');
-    if (resolveBtn) {
-      resolveGame(resolveBtn.dataset.gameId, resolveBtn.dataset.winner);
-      return;
-    }
-    const editBtn = e.target.closest('.admin-edit-btn');
-    if (editBtn) {
-      const game = (window._adminGamesCache || []).find(g => g.id === editBtn.dataset.gameId);
-      if (game) editGame(game.id, game.t1, game.t2, game.wp1, game.wp2, game.game_date || '', game.lock_time || '');
-      return;
-    }
-  });
-
-  async function renderAdminPlayers() {
-    const el = document.getElementById('admin-players-list');
-    const { data } = await supabase.from('profiles').select('id, username, peels').eq('is_admin', false).order('peels', { ascending: false });
-    const players = data || [];
-    if (!players.length) { el.innerHTML = '<div class="no-games" style="padding:12px">No players yet.</div>'; return; }
-    el.innerHTML = players.map(u => `
-      <div class="admin-game-item">
-        <div class="admin-game-info"><strong>${u.username}</strong></div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-family:'Bangers',cursive;color:#FFD700;font-size:16px">${Math.round(u.peels)} 🍌</span>
-          <button class="result-btn" style="padding:5px 10px;font-size:12px" onclick="adjustPeels('${u.id}','${u.username}')">Adjust</button>
-        </div>
-      </div>`).join('');
-  }
-
-  // ─── Edit game ───────────────────────────────────────────────
-  function editGame(gameId, t1, t2, wp1, wp2, gameDate, lockTime) {
-    document.getElementById('edit-game-id').value = gameId;
-    document.getElementById('edit-t1').value = t1;
-    document.getElementById('edit-t2').value = t2;
-    document.getElementById('edit-wp1').value = wp1;
-    document.getElementById('edit-wp2').value = wp2;
-    // Convert UTC dates back to local datetime-local format
-    if (gameDate) {
-      const d = new Date(gameDate);
-      document.getElementById('edit-date').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
-    } else {
-      document.getElementById('edit-date').value = '';
-    }
-    if (lockTime) {
-      const l = new Date(lockTime);
-      document.getElementById('edit-lock').value = new Date(l.getTime() - l.getTimezoneOffset()*60000).toISOString().slice(0,16);
-    } else {
-      document.getElementById('edit-lock').value = '';
-    }
-    syncEditWinPct(1);
-    setError('edit-game-error', '');
-    document.getElementById('edit-game-modal').style.display = 'flex';
-  }
-
-  function syncEditWinPct(changed) {
-    const v = parseFloat(document.getElementById('edit-wp' + changed).value);
-    if (!isNaN(v) && v >= 1 && v <= 99) {
-      document.getElementById('edit-wp' + (changed === 1 ? 2 : 1)).value = Math.max(1, Math.min(99, 100 - v));
-    }
-    const wp1 = parseFloat(document.getElementById('edit-wp1').value);
-    const wp2 = parseFloat(document.getElementById('edit-wp2').value);
-    if (!isNaN(wp1)) document.getElementById('edit-odds-1').textContent = calcPayout(wp1) + 'x';
-    if (!isNaN(wp2)) document.getElementById('edit-odds-2').textContent = calcPayout(wp2) + 'x';
-  }
-
-  async function saveEditGame() {
-    setError('edit-game-error', '');
-    const gameId = document.getElementById('edit-game-id').value;
-    const t1 = document.getElementById('edit-t1').value.trim();
-    const t2 = document.getElementById('edit-t2').value.trim();
-    const wp1 = parseFloat(document.getElementById('edit-wp1').value);
-    const wp2 = parseFloat(document.getElementById('edit-wp2').value);
-    const date = document.getElementById('edit-date').value;
-    const lock = document.getElementById('edit-lock').value;
-    if (!t1 || !t2) { setError('edit-game-error', 'Enter both team names.'); return; }
-    if (isNaN(wp1) || isNaN(wp2)) { setError('edit-game-error', 'Enter valid win percentages.'); return; }
-    const toUTC = (local) => local ? new Date(local).toISOString() : null;
-    const { error } = await supabase.from('games').update({
-      t1, t2, wp1, wp2,
-      game_date: toUTC(date),
-      lock_time: toUTC(lock)
-    }).eq('id', gameId);
-    if (error) { setError('edit-game-error', error.message); return; }
-    closeModal('edit-game-modal');
-    toast('Game updated! 🍌');
-    renderAdminGames();
-    renderGames(); // refresh player-facing games too
-  }
-
-  function resolveGame(gameId, winner) {
-    const games = document.querySelectorAll('.admin-game-info strong');
-    pendingResolve = { gameId, winner };
-    document.getElementById('resolve-body').textContent = `Mark "${winner}" as the winner? All winning bets will be paid out automatically.`;
-    document.getElementById('resolve-modal').style.display = 'flex';
-  }
-
-  async function confirmResolve() {
-    closeModal('resolve-modal');
-    const { gameId, winner } = pendingResolve;
-    toast('Resolving game... 🍌');
-
-    // Close the game first
-    const { error: gameError } = await supabase.from('games').update({ status: 'closed', winner }).eq('id', gameId);
-    if (gameError) { toast('Error closing game: ' + gameError.message); return; }
-
-    // Call edge function to settle bets with service role (bypasses RLS)
-    try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/settle-bets`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ game_id: gameId, winner })
-      });
-      const result = await res.json();
-      if (res.ok) {
-        await refreshHeader();
-        renderAdmin();
-        toast(`Done! ${result.won} won, ${result.lost} lost 🍌`);
-      } else {
-        toast('Edge function error: ' + JSON.stringify(result));
-        renderAdmin();
-      }
-    } catch(e) {
-      toast('Error settling bets: ' + e.message);
-      renderAdmin();
-    }
-  }
-
-  function adjustPeels(userId, username) {
-    pendingAdjust = { userId };
-    document.getElementById('adjust-title').textContent = 'Adjust: ' + username;
-    document.getElementById('adjust-input').value = '';
-    setError('adjust-error', '');
-    document.getElementById('adjust-modal').style.display = 'flex';
-    setTimeout(() => document.getElementById('adjust-input').focus(), 100);
-  }
-
-  async function confirmAdjust() {
-    const amt = parseFloat(document.getElementById('adjust-input').value);
-    if (isNaN(amt)) { setError('adjust-error', 'Enter a valid number.'); return; }
-    const { data: profile } = await supabase.from('profiles').select('peels, username').eq('id', pendingAdjust.userId).single();
-    const newPeels = Math.round(profile.peels + amt);
-    await supabase.from('profiles').update({ peels: newPeels }).eq('id', pendingAdjust.userId);
-    closeModal('adjust-modal');
-    renderAdminPlayers(); refreshHeader();
-    toast(`${profile.username}: ${amt >= 0 ? '+' : ''}${amt} Peels`);
-  }
-
-  // ─── Cards ───────────────────────────────────────────────────
-  const RARITY_MULTIPLIER = { common: 1, rare: 2, legendary: 3, mythic: 5 };
-  const RARITY_COLOR = { common: '#aaa', rare: '#60a5fa', legendary: '#FFD700', mythic: '#e879f9' };
-  const UPGRADE_COST = { common: 200, rare: 500, legendary: 1000 };
-  const RARITY_ORDER = ['common', 'rare', 'legendary', 'mythic'];
-  const RARITY_NEXT = { common: 'rare', rare: 'legendary', legendary: 'mythic' };
-
-  function cardHTML(card, showMult=true, lockedRarity=null, userCardId=null, showSell=false, earnedPeels=null) {
-    const rarity = lockedRarity || card.rarity;
-    const mult = RARITY_MULTIPLIER[rarity] || 1;
-    const pts = earnedPeels !== null ? earnedPeels : (card.total_peels_earned || 0);
-    const sellPrice = Math.round(200 * (mult / 5)); // sell value based on rarity
-    return `<div class="player-card ${rarity}">
-      <div class="card-rarity rarity-${rarity}">${rarity} ${rarity==='mythic'?'🔮':rarity==='legendary'?'⭐':rarity==='rare'?'💎':'·'}</div>
-      <div class="card-player">${card.player_name}</div>
-      <div class="card-team" style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap">${card.position?`<span style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:50px;padding:2px 10px;font-size:11px;font-weight:700;color:#FFD700">${card.position==='Pitcher'?'⚾ Pitcher':'🏏 Batter'}</span>`:''}<span style="font-size:12px;color:rgba(255,255,255,0.5)">${card.team_name||''}</span></div>
-      <div class="card-pts">${pts}</div>
-      <div class="card-pts-lbl">Peels earned</div>
-      ${showMult?`<div class="card-mult" style="color:${RARITY_COLOR[rarity]}">${mult}x multiplier</div>`:''}
-      ${showSell&&userCardId&&rarity!=='mythic'?`<button onclick="upgradeCard('${userCardId}','${card.player_name}','${rarity}')" style="margin-top:6px;width:100%;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">⬆ Upgrade to ${RARITY_NEXT[rarity]||''} — ${UPGRADE_COST[rarity]||0} 🍌</button>`:''}
-      ${showSell&&userCardId?`<button onclick="sellCard('${userCardId}','${card.player_name}',${sellPrice})" style="margin-top:4px;width:100%;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">Sell for ${sellPrice} 🍌</button>`:''}
-    </div>`;
-  }
-
-  async function renderCardsPage() {
-    // Cards feature paused - coming soon placeholder is shown instead
-    return;
-    // Check for unseen earnings first
-    const { data: unseen } = await supabase.from('card_earnings_log')
-      .select('*, player_cards(player_name)')
-      .eq('user_id', currentUser.id)
-      .eq('seen', false)
-      .order('created_at', {ascending: false});
-
-    if (unseen?.length) {
-      showEarningsPopup(unseen);
-      // Mark all as seen
-      await supabase.from('card_earnings_log').update({ seen: true }).eq('user_id', currentUser.id).eq('seen', false);
-    }
-
-    // My cards
-    const myEl = document.getElementById('my-cards-list');
-    myEl.innerHTML = '<div class="loading"><span class="spinner"></span>Loading...</div>';
-    const { data: myCards } = await supabase.from('user_cards').select('*, player_cards(*)').eq('user_id', currentUser.id).order('created_at', {ascending: false});
-    if (!myCards?.length) {
-      myEl.innerHTML = `<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">
-        No cards yet!<br/><br/>
-        <button class="btn-gold" style="background:#FFD700;color:#1a1a2e;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif" onclick="showStarterCardPicker(currentUser.id)">🎁 Claim Your Free Starter Card</button>
-      </div>`;
-    } else {
-      myEl.innerHTML = `<div class="cards-grid-collection">${myCards.map(uc => cardHTML(uc.player_cards, true, uc.locked_rarity, uc.id, true, uc.total_peels_earned || 0)).join('')}</div>`;
-    }
-
-    // Packs
-    const packsEl = document.getElementById('packs-list');
-    const { data: packs } = await supabase.from('card_packs').select('*').order('price');
-    if (!packs?.length) {
-      packsEl.innerHTML = '<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No packs available yet.</div>';
-    } else {
-      packsEl.innerHTML = packs.map(p => `
-        <div class="pack-card ${p.is_starter?'starter-pack':''}">
-          <div class="pack-header">
-            <div class="pack-name">${p.is_starter?'🎁 ':''}${p.name}</div>
-            <div class="pack-price">${p.price===0?'FREE':p.price+' 🍌'}</div>
-          </div>
-          <div class="pack-odds">
-            <span style="color:#aaa">Common ${p.common_pct}%</span> ·
-            <span style="color:#60a5fa">Rare ${p.rare_pct}%</span> ·
-            <span style="color:#FFD700">Legendary ${p.legendary_pct}%</span> ·
-            <span style="color:#e879f9">Mythic ${p.mythic_pct||0}%</span>
-          </div>
-          <button class="pack-btn" onclick="buyPack('${p.id}','${p.name}',${p.price},${p.common_pct},${p.rare_pct},${p.legendary_pct},${p.mythic_pct||0})">
-            ${p.price===0?'Claim Free Pack!':'Open Pack — '+p.price+' Peels'}
-          </button>
-        </div>`).join('');
-    }
-  }
-
-  let packPurchaseInProgress = false;
-  async function buyPack(packId, packName, price, commonPct, rarePct, legendaryPct, mythicPct=0) {
-    if (!currentUser) { toast('Sign in first!'); return; }
-    if (packPurchaseInProgress) return;
-    packPurchaseInProgress = true;
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/open-pack`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ pack_id: packId, user_id: currentUser.id })
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        toast('Error: ' + (result.error || 'Something went wrong'));
-        packPurchaseInProgress = false;
-        return;
-      }
-      // Update local peels
-      currentProfile.peels = result.new_peels;
-      await refreshHeader();
-      // Show reveal animation
-      document.getElementById('card-reveal-box').innerHTML = cardHTML(result.card);
-      document.getElementById('card-reveal-overlay').style.display = 'flex';
-    } catch(e) {
-      toast('Error: ' + e.message);
-    }
-    packPurchaseInProgress = false;
-  }
-
-  function closeReveal() {
-    document.getElementById('card-reveal-overlay').style.display = 'none';
-    renderCardsPage();
-  }
-
-  // ─── Admin: Packs & Cards ─────────────────────────────────
-  function showCreatePack() {
-    document.getElementById('cp-error') && (document.getElementById('cp-error').textContent = '');
-    document.getElementById('create-pack-modal').style.display = 'flex';
-  }
-
-  async function createPack() {
-    const name = document.getElementById('cp-name').value.trim();
-    const price = parseInt(document.getElementById('cp-price').value);
-    const common = parseInt(document.getElementById('cp-common').value);
-    const rare = parseInt(document.getElementById('cp-rare').value);
-    const legendary = parseInt(document.getElementById('cp-legendary').value);
-    const mythic = parseInt(document.getElementById('cp-mythic').value);
-    if (!name) { setError('cp-error', 'Enter a pack name.'); return; }
-    if (common + rare + legendary + mythic !== 100) { setError('cp-error', 'Percentages must add up to 100.'); return; }
-    const { error } = await supabase.from('card_packs').insert({ name, price, common_pct: common, rare_pct: rare, legendary_pct: legendary, mythic_pct: mythic });
-    if (error) { setError('cp-error', error.message); return; }
-    closeModal('create-pack-modal');
-    toast('Pack created! 🎁');
-    renderAdmin();
-  }
-
-  async function showCreateCard() {
-    const { data: packs } = await supabase.from('card_packs').select('id, name');
-    const sel = document.getElementById('cc-pack-select');
-    sel.innerHTML = (packs||[]).map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-    document.getElementById('create-card-modal').style.display = 'flex';
-  }
-
-  async function createPlayerCard() {
-    const player = document.getElementById('cc-player').value.trim();
-    const team = document.getElementById('cc-team').value.trim();
-    const position = document.getElementById('cc-position').value;
-    const packSel = document.getElementById('cc-pack-select');
-    const packIds = Array.from(packSel.selectedOptions).map(o => o.value);
-    if (!player) { setError('cc-error', 'Enter player name.'); return; }
-    if (!packIds.length) { setError('cc-error', 'Select at least one pack.'); return; }
-    // Insert one card record (rarity no longer fixed - determined at pull time)
-    const { data: card, error } = await supabase.from('player_cards').insert({ 
-      player_name: player, team_name: team, position: position||null, pack_id: packIds[0]
-    }).select().single();
-    if (error) { setError('cc-error', error.message); return; }
-    // Add to all packs via junction table
-    const allPackLinks = packIds.map(pid => ({ card_id: card.id, pack_id: pid }));
-    await supabase.from('card_pack_members').insert(allPackLinks);
-    closeModal('create-card-modal');
-    toast('Card created in ' + packIds.length + ' pack(s)! 🃏');
-    renderAdmin();
-  }
-
-  async function showPlayerStats() {
-    const { data: cards } = await supabase.from('player_cards').select('id, player_name, team_name, position').order('player_name');
-    const sel = document.getElementById('ps-player-select');
-    sel.innerHTML = (cards||[]).map(c => `<option value="${c.id}">${c.player_name}${c.position?' ('+c.position+')':''} — ${c.team_name||''}</option>`).join('');
-    document.getElementById('player-stats-modal').style.display = 'flex';
-  }
-
-  async function submitPlayerStats() {
-    setError('ps-error', '');
-    const cardId = document.getElementById('ps-player-select').value;
-    const basePeels = parseInt(document.getElementById('ps-base-peels').value);
-    const notes = document.getElementById('ps-notes').value.trim();
-    if (!cardId) { setError('ps-error', 'Select a player.'); return; }
-    if (!basePeels || basePeels < 0) { setError('ps-error', 'Enter valid peels amount.'); return; }
-
-    // Get the card to find rarity
-    const { data: card } = await supabase.from('player_cards').select('*').eq('id', cardId).single();
-    if (!card) { setError('ps-error', 'Card not found.'); return; }
-    const mult = RARITY_MULTIPLIER[card.rarity] || 1;
-    const payout = Math.round(basePeels * mult);
-
-    // Find all users who have this card
-    const { data: holders } = await supabase.from('user_cards').select('*').eq('card_id', cardId);
-    if (!holders?.length) { setError('ps-error', 'No one owns this card yet.'); return; }
-
-    // Log the stat entry
-    const { data: logEntry } = await supabase.from('card_stat_logs').insert({ 
-      card_id: cardId, base_peels: basePeels, notes, created_at: new Date().toISOString() 
-    }).select().single();
-
-    // Pay out each holder
-    for (const holder of holders) {
-      const holderMult = RARITY_MULTIPLIER[holder.locked_rarity || card.rarity] || 1;
-      const holderPayout = Math.round(basePeels * holderMult);
-      // Update user_cards total + log for notification
-      await supabase.from('user_cards').update({ 
-        total_peels_earned: (holder.total_peels_earned || 0) + holderPayout 
-      }).eq('id', holder.id);
-      // Log per-user notification
-      await supabase.from('card_earnings_log').insert({
-        user_id: holder.user_id,
-        user_card_id: holder.id,
-        card_id: cardId,
-        payout: holderPayout,
-        notes,
-        seen: false
-      });
-      // Pay peels to profile
-      const { data: profile } = await supabase.from('profiles').select('peels').eq('id', holder.user_id).single();
-      if (profile) await supabase.from('profiles').update({ peels: Math.round(profile.peels + holderPayout) }).eq('id', holder.user_id);
-    }
-
-    closeModal('player-stats-modal');
-    await refreshHeader();
-    toast(`Paid out to ${holders.length} card holder(s)! 🃏`);
-  }
-
-  async function renderAdminCardsSection() {
-    // Packs
-    const packsEl = document.getElementById('admin-packs-list');
-    if (packsEl) {
-      const { data: packs } = await supabase.from('card_packs').select('*');
-      packsEl.innerHTML = (packs||[]).length ? packs.map(p => `
-        <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;display:flex;justify-content:space-between">
-          <span>${p.name}</span>
-          <span style="color:rgba(255,215,0,0.7)">${p.price}🍌 · C${p.common_pct}%/R${p.rare_pct}%/L${p.legendary_pct}%/M${p.mythic_pct||0}%</span>
-        </div>`).join('') : '<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No packs yet</div>';
-    }
-    // Cards
-    const cardsEl = document.getElementById('admin-cards-list');
-    if (cardsEl) {
-      const { data: cards } = await supabase.from('player_cards').select('*, card_packs(name)').order('player_name');
-      cardsEl.innerHTML = (cards||[]).length ? cards.map(c => `
-        <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;display:flex;justify-content:space-between">
-          <span>${c.player_name} <span style="color:${RARITY_COLOR[c.rarity]}">(${c.rarity})</span></span>
-          <span style="color:rgba(255,255,255,0.4)">${c.card_packs?.name||'No pack'}</span>
-        </div>`).join('') : '<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No cards yet</div>';
-    }
-  }
-
-  // ─── Earnings popup ──────────────────────────────────────────
-  function showEarningsPopup(earnings) {
-    const existing = document.getElementById('earnings-popup');
-    if (existing) existing.remove();
-    const total = earnings.reduce((sum, e) => sum + e.payout, 0);
-    const lines = earnings.map(e => `
-      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">
-        <span style="color:rgba(255,255,255,0.8)">${e.player_cards?.player_name||'Player'} ${e.notes?'· '+e.notes:''}</span>
-        <span style="color:#FFD700;font-weight:700">+${e.payout} 🍌</span>
-      </div>`).join('');
-    const popup = document.createElement('div');
-    popup.id = 'earnings-popup';
-    popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:400';
-    popup.innerHTML = `
-      <div style="background:#1e293b;border:2px solid #FFD700;border-radius:20px;padding:24px;width:340px;max-width:95vw;max-height:80vh;overflow-y:auto">
-        <div style="font-family:'Bangers',cursive;font-size:26px;color:#FFD700;letter-spacing:2px;text-align:center;margin-bottom:4px">🃏 Card Earnings!</div>
-        <div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:16px">Your cards earned Peels while you were away</div>
-        ${lines}
-        <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:15px">
-          <span>Total earned</span>
-          <span style="color:#FFD700;font-family:'Bangers',cursive;font-size:20px">+${total} 🍌</span>
-        </div>
-        <button onclick="document.getElementById('earnings-popup').remove()" style="margin-top:14px;width:100%;background:#FFD700;color:#1a1a2e;border:none;padding:11px;border-radius:12px;font-weight:700;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif">Sweet! 🍌</button>
-      </div>`;
-    document.body.appendChild(popup);
-  }
-
-  // ─── Upgrade card ────────────────────────────────────────────
-  async function upgradeCard(userCardId, playerName, currentRarity) {
-    const cost = UPGRADE_COST[currentRarity];
-    const nextRarity = RARITY_NEXT[currentRarity];
-    if (!nextRarity) { toast('Already max rarity!'); return; }
-    if (!confirm(`Upgrade ${playerName} from ${currentRarity} to ${nextRarity} for ${cost} Peels?`)) return;
-
-    const { data: profile } = await supabase.from('profiles').select('peels').eq('id', currentUser.id).single();
-    if (!profile || profile.peels < cost) { toast('Not enough Peels! 🍌'); return; }
-
-    // Deduct peels
-    await supabase.from('profiles').update({ peels: Math.round(profile.peels - cost) }).eq('id', currentUser.id);
-    // Update card rarity
-    await supabase.from('user_cards').update({ locked_rarity: nextRarity }).eq('id', userCardId);
-
-    await refreshHeader();
-    toast(`${playerName} upgraded to ${nextRarity}! 🎉`);
-    renderCardsPage();
-  }
-
-  // ─── Sell card ───────────────────────────────────────────────
-  async function sellCard(userCardId, playerName, sellPrice) {
-    if (!confirm(`Sell ${playerName} for ${sellPrice} Peels? This cannot be undone.`)) return;
-    const { error } = await supabase.from('user_cards').delete().eq('id', userCardId);
-    if (error) { toast('Error selling card: ' + error.message); return; }
-    const { data: profile } = await supabase.from('profiles').select('peels').eq('id', currentUser.id).single();
-    if (profile) {
-      await supabase.from('profiles').update({ peels: Math.round(profile.peels + sellPrice) }).eq('id', currentUser.id);
-      await refreshHeader();
-    }
-    toast(`Sold ${playerName} for ${sellPrice} Peels! 🍌`);
-    renderCardsPage();
-  }
-
-  // ─── Starter card picker ─────────────────────────────────────
-  let starterUserId = null;
-  let allPlayersList = [];
-
-  async function showStarterCardPicker(userId) {
-    starterUserId = userId;
-    const { data: players } = await supabase.from('player_cards').select('id, player_name, team_name, position').order('player_name');
-    // Deduplicate by player name (show each player once)
-    const seen = new Set();
-    allPlayersList = (players||[]).filter(p => {
-      if (seen.has(p.player_name)) return false;
-      seen.add(p.player_name);
-      return true;
-    });
-    filterStarterPlayers();
-    document.getElementById('starter-card-modal').style.display = 'flex';
-  }
-
-  function filterStarterPlayers() {
-    const q = document.getElementById('starter-search').value.toLowerCase();
-    const filtered = allPlayersList.filter(p => p.player_name.toLowerCase().includes(q));
-    const el = document.getElementById('starter-player-list');
-    el.innerHTML = filtered.map(p => `
-      <div class="team-item" onclick="claimStarterCard('${p.player_name}')">
-        <div>
-          <div class="team-name-display">${p.player_name}</div>
-          <div class="team-conf">${p.position||''} ${p.team_name||''}</div>
-        </div>
-        <button class="draft-btn">Pick</button>
-      </div>`).join('');
-  }
-
-  async function claimStarterCard(playerName) {
-    setError('starter-error', '');
-    const uid = starterUserId || currentUser?.id;
-    if (!uid) return;
-    // Get any card for this player (common preferred)
-    const { data: cards } = await supabase.from('player_cards').select('id, rarity').eq('player_name', playerName).order('rarity');
-    if (!cards?.length) { setError('starter-error', 'Player not found.'); return; }
-    const card = cards[0];
-    const { error } = await supabase.from('user_cards').insert({
-      user_id: uid, card_id: card.id, total_peels_earned: 0, locked_rarity: 'common'
-    });
-    if (error) { setError('starter-error', error.message); return; }
-    closeModal('starter-card-modal');
-    toast(`${playerName} added to your collection as Common! 🃏`);
-    if (currentUser) renderCardsPage();
-  }
-
-  // ─── Boot ─────────────────────────────────────────────────
-  async function boot() {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        currentUser = session.user;
-        const profile = await loadProfile(currentUser.id);
-        if (profile) { applyProfile(profile); }
-      } else {
-        document.getElementById('auth-overlay').style.display = 'flex';
-      }
-      renderGames();
-      renderLeaderboard();
-
-      supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          currentUser = session.user;
-          const profile = await loadProfile(currentUser.id);
-          if (profile) { applyProfile(profile); renderGames(); renderLeaderboard(); }
-        } else if (event === 'SIGNED_OUT') {
-          currentUser = null; currentProfile = null;
-          document.getElementById('auth-overlay').style.display = 'flex';
-          showPage('games', document.getElementById('nav-games'));
-        }
-      });
-    } catch(e) {
-      console.error('Boot error:', e);
-    }
-  }
-
-  boot();
+ // ============================================================
+ // STEP 1: PASTE YOUR SUPABASE CREDENTIALS HERE
+ // ============================================================
+ const SUPABASE_URL ='https://egnbjvbcttafemsyekjw.supabase.co';
+ const SUPABASE_ANON_KEY ='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmJqdmJjdHRhZmVtc3lla2p3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NDgyNzQsImV4cCI6MjA5NTEyNDI3NH0.x8ukqsRCXAeNQ3pe-VCmRoMI2p-wlVI11UfVQ__-wYQ';
+ // ============================================================
+
+ const ADMIN_CODE ='bananas2024'; // Change this to whatever you want
+ const HOUSE_EDGE = 0.05;
+
+ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+ let currentUser = null;
+ let currentProfile = null;
+ let isSignup = false;
+ let picks = {};
+ let pendingResolve = {};
+ let pendingAdjust = {};
+
+ // ─── Payout formula ───────────────────────────────────────
+ function calcPayout(winPct) {
+ const p = Math.max(1, Math.min(99, winPct)) / 100;
+ return Math.max(1.1, Math.round((1 / p) * (1 - HOUSE_EDGE) * 10) / 10);
+ }
+
+ // ─── Helpers ──────────────────────────────────────────────
+ function toast(msg, dur = 2400) {
+ const t = document.getElementById('toast');
+ t.textContent = msg; t.classList.add('show');
+ clearTimeout(t._t); t._t = setTimeout(() =>t.classList.remove('show'), dur);
+ }
+ function setError(id, msg) { const el = document.getElementById(id); if (el) el.textContent = msg; }
+ function closeModal(id) { document.getElementById(id).style.display ='none'; }
+
+ // ─── Feedback ───────────────────────────────────────────────
+ async function submitFeedback() {
+ setError('feedback-error','');
+ const text = document.getElementById('feedback-text').value.trim();
+ if (!text) { setError('feedback-error','Please write some feedback first.'); return; }
+ const btn = document.getElementById('feedback-submit-btn');
+ btn.textContent ='Sending...'; btn.disabled = true;
+ try {
+ const res = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
+ method:'POST',
+ headers: {'Content-Type':'application/json','Accept':'application/json' },
+ body: JSON.stringify({
+ message: text,
+ from_user: currentProfile?.username ||'Unknown',
+ email: currentUser?.email ||'Unknown',
+ app:"Peels Pick'em"
+ })
+ });
+ if (res.ok) {
+ document.getElementById('feedback-text').value ='';
+ toast('Feedback sent! Thank you!');
+ } else {
+ setError('feedback-error','Something went wrong. Try again.');
+ }
+ } catch(e) {
+ setError('feedback-error','Error:' + e.message);
+ }
+ btn.textContent ='Send Feedback'; btn.disabled = false;
+ }
+
+ // ─── Bot accounts ───────────────────────────────────────────
+ async function addBot() {
+ const name = document.getElementById('bot-name').value.trim();
+ const peels = parseInt(document.getElementById('bot-peels').value) || 100;
+ if (!name) { toast('Enter a bot name.'); return; }
+ const fakeId = crypto.randomUUID ? crypto.randomUUID() :'bot-' + Date.now() +'-' + Math.random().toString(36).slice(2);
+ const { error } = await supabase.from('profiles').insert({
+ id: fakeId, username: name, peels, is_admin: false, is_bot: true
+ });
+ if (error) { toast('Error adding bot:' + error.message); return; }
+ document.getElementById('bot-name').value ='';
+ document.getElementById('bot-peels').value ='100';
+ toast('Bot added!');
+ renderAdminBots();
+ renderLeaderboard();
+ }
+
+ async function renderAdminBots() {
+ const el = document.getElementById('admin-bots-list');
+ if (!el) return;
+ const { data: bots } = await supabase.from('profiles').select('id, username, peels').eq('is_bot', true).order('username');
+ if (!bots?.length) { el.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No bots yet</div>'; return; }
+ el.innerHTML = bots.map(b =>`
+<div class="admin-game-item">
+<div class="admin-game-info"><strong>${escapeHtml(b.username)}</strong><span style="color:rgba(255,255,255,0.4);font-size:12px">bot</span></div>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-family:'Bangers',cursive;color:#FFD700;font-size:16px">${Math.round(b.peels)}</span>
+<button class="result-btn bot-adjust-btn" data-bot-id="${b.id}" data-bot-name="${escapeAttr(b.username)}" style="padding:5px 10px;font-size:12px">Adjust</button>
+<button class="result-btn bot-delete-btn" data-bot-id="${b.id}" style="padding:5px 10px;font-size:12px;color:#ff7675;border-color:rgba(255,118,117,0.4)">Remove</button>
+</div>
+</div>`).join('');
+ }
+
+ document.addEventListener('click', function(e) {
+ const adjustBtn = e.target.closest('.bot-adjust-btn');
+ if (adjustBtn) {
+ const newVal = prompt('Set new Peels amount for' + adjustBtn.dataset.botName +':');
+ if (newVal !== null && !isNaN(parseFloat(newVal))) {
+ supabase.from('profiles').update({ peels: Math.round(parseFloat(newVal)) }).eq('id', adjustBtn.dataset.botId).then(() =>{
+ toast('Bot updated!');
+ renderAdminBots();
+ renderLeaderboard();
+ });
+ }
+ return;
+ }
+ const deleteBtn = e.target.closest('.bot-delete-btn');
+ if (deleteBtn) {
+ if (confirm('Remove this bot from the leaderboard?')) {
+ supabase.from('profiles').delete().eq('id', deleteBtn.dataset.botId).then(() =>{
+ toast('Bot removed.');
+ renderAdminBots();
+ renderLeaderboard();
+ });
+ }
+ return;
+ }
+ });
+
+ function escapeHtml(str) {
+ if (str === null || str === undefined) return'';
+ const div = document.createElement('div');
+ div.textContent = str;
+ return div.innerHTML;
+ }
+ function escapeAttr(str) {
+ if (str === null || str === undefined) return'';
+ return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+ }
+
+ function showPage(p, btn) {
+ document.querySelectorAll('.page').forEach(x =>x.classList.remove('active'));
+ document.querySelectorAll('.nav-btn').forEach(x =>x.classList.remove('active'));
+ document.getElementById('page-' + p).classList.add('active');
+ if (btn) btn.classList.add('active');
+ ({ games: renderGames, mybets: renderMyBets, leaderboard: renderLeaderboard, admin: renderAdmin, cards: renderCardsPage })[p]?.();
+ }
+
+ // ─── Auth ─────────────────────────────────────────────────
+ function toggleAuth() {
+ isSignup = !isSignup;
+ document.getElementById('auth-sub').textContent = isSignup ?'Create your account — 100 free Peels!' :'Sign in to place your picks';
+ document.getElementById('auth-signup-fields').style.display = isSignup ?'block' :'none';
+ document.getElementById('auth-main-btn').textContent = isSignup ?'Sign Up' :'Sign In';
+ document.getElementById('auth-switch').innerHTML = isSignup
+ ?'Have an account?<a onclick="toggleAuth()">Sign in</a>'
+ :'No account?<a onclick="toggleAuth()">Sign up</a>— you get 100 free Peels';
+ setError('auth-error','');
+ }
+
+ async function authSubmit() {
+ try {
+ setError('auth-error','');
+ const email = document.getElementById('auth-email').value.trim();
+ const pass = document.getElementById('auth-password').value;
+ if (!email || !pass) { setError('auth-error','Please fill in all fields.'); return; }
+ const btn = document.getElementById('auth-main-btn');
+ btn.textContent ='...'; btn.disabled = true;
+
+ if (isSignup) {
+ const username = document.getElementById('auth-username').value.trim();
+ if (!username) { setError('auth-error','Enter a username.'); btn.textContent ='Sign Up'; btn.disabled = false; return; }
+ const { data, error } = await supabase.auth.signUp({ email, password: pass });
+ if (error) { setError('auth-error', error.message); btn.textContent ='Sign Up'; btn.disabled = false; return; }
+ await supabase.from('profiles').insert({ id: data.user.id, username, peels: 100, is_admin: false });
+ // Show starter card picker after login
+ setTimeout(() =>showStarterCardPicker(data.user.id), 800);
+ toast('Welcome! You have 100 Peels! Pick your free starter card 🃏');
+ } else {
+ const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+ if (error) { setError('auth-error','Incorrect email or password.'); btn.textContent ='Sign In'; btn.disabled = false; return; }
+ }
+ btn.textContent = isSignup ?'Sign Up' :'Sign In'; btn.disabled = false;
+ } catch(e) {
+ setError('auth-error','Error:' + e.message);
+ const btn = document.getElementById('auth-main-btn');
+ btn.textContent = isSignup ?'Sign Up' :'Sign In'; btn.disabled = false;
+ }
+ }
+
+ function showAdminLogin() {
+ document.getElementById('admin-pass-input').value ='';
+ setError('admin-pass-error','');
+ document.getElementById('admin-modal').style.display ='flex';
+ setTimeout(() =>document.getElementById('admin-pass-input').focus(), 100);
+ }
+
+ async function submitAdminLogin() {
+ const pass = document.getElementById('admin-pass-input').value;
+ if (pass === ADMIN_CODE) {
+ closeModal('admin-modal');
+ // Mark current profile as admin session (just sets a flag in memory)
+ if (currentProfile) {
+ currentProfile.is_admin = true;
+ document.getElementById('nav-admin').style.display ='';
+ toast('Admin mode activated');
+ renderAdmin();
+ } else {
+ toast('Sign in to your account first, then use Admin Login.');
+ }
+ } else {
+ setError('admin-pass-error','Wrong password.');
+ document.getElementById('admin-pass-input').value ='';
+ document.getElementById('admin-pass-input').focus();
+ }
+ }
+
+ async function loadProfile(userId) {
+ const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+ return data;
+ }
+
+ function applyProfile(profile) {
+ currentProfile = profile;
+ document.getElementById('auth-overlay').style.display ='none';
+ document.getElementById('header-name').textContent = profile.username;
+ document.getElementById('header-peels').textContent = Math.round(profile.peels) +'';
+ document.getElementById('nav-admin').style.display = profile.is_admin ?'' :'none';
+ }
+
+ function showLogout() {
+ if (!currentUser) return;
+ document.getElementById('logout-name').textContent = currentProfile?.username || currentUser.email;
+ document.getElementById('logout-admin-btn').style.display = currentProfile?.is_admin ?'none' :'block';
+ document.getElementById('logout-modal').style.display ='flex';
+ }
+
+ async function logout() {
+ try {
+ await supabase.auth.signOut();
+ } catch(e) {}
+ currentUser = null; currentProfile = null;
+ closeModal('logout-modal');
+ document.getElementById('auth-overlay').style.display ='flex';
+ document.getElementById('header-name').textContent ='Guest';
+ document.getElementById('header-peels').textContent ='0';
+ document.getElementById('nav-admin').style.display ='none';
+ document.querySelectorAll('.page').forEach(x =>x.classList.remove('active'));
+ document.querySelectorAll('.nav-btn').forEach(x =>x.classList.remove('active'));
+ document.getElementById('page-games').classList.add('active');
+ document.getElementById('nav-games').classList.add('active');
+ renderGames();
+ }
+
+ async function refreshHeader() {
+ if (!currentUser) return;
+ const profile = await loadProfile(currentUser.id);
+ if (profile) {
+ currentProfile = { ...currentProfile, ...profile };
+ document.getElementById('header-peels').textContent = Math.round(profile.peels) +'';
+ }
+ }
+
+ // ─── Games page ───────────────────────────────────────────
+ async function renderGames() {
+ const el = document.getElementById('games-list');
+ el.innerHTML ='<div class="loading"><span class="spinner"></span>Loading games...</div>';
+ const { data: games } = await supabase.from('games').select('*').eq('status','open').order('created_at', { ascending: false });
+ if (!games || !games.length) { el.innerHTML ='<div class="no-games">No active games right now.<br>Check back soon!</div>'; return; }
+
+ let userBets = [];
+ if (currentUser) {
+ const { data } = await supabase.from('bets').select('*').eq('user_id', currentUser.id).eq('status','pending');
+ userBets = data || [];
+ }
+
+ el.innerHTML = games.map(g =>{
+ const userBet = userBets.find(b =>b.game_id === g.id);
+ const o1 = calcPayout(g.wp1), o2 = calcPayout(g.wp2);
+ const isLocked = g.lock_time && new Date() >= new Date(g.lock_time);
+ return `<div class="game-card">
+<div class="game-teams">
+<div class="team"><div class="team-name">${g.t1}</div><div class="team-odds-pill">${g.wp1}% win · ${o1}x</div></div>
+<div class="vs">VS</div>
+<div class="team"><div class="team-name">${g.t2}</div><div class="team-odds-pill">${g.wp2}% win · ${o2}x</div></div>
+</div>
+ ${g.game_date ? `<div class="game-date">${new Date(g.game_date).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` :''}
+ ${isLocked
+ ? `<div style="text-align:center;padding:10px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:10px;font-size:13px;color:#ff7675">Betting is locked — game in progress</div>`
+ : userBet
+ ? `<div style="text-align:center;padding:10px;background:rgba(255,215,0,0.1);border-radius:10px;font-size:13px;color:#FFD700">Bet on<strong>${userBet.pick}</strong>— ${userBet.wager} Peels → ${userBet.potential} if win</div>`
+ : `<div class="pick-buttons">
+<button class="pick-btn" id="pb-${g.id}-1" onclick="selectPick('${g.id}','${g.t1}',${o1})">${g.t1}<span class="btn-payout">Win → ${o1}x payout</span></button>
+<button class="pick-btn" id="pb-${g.id}-2" onclick="selectPick('${g.id}','${g.t2}',${o2})">${g.t2}<span class="btn-payout">Win → ${o2}x payout</span></button>
+</div>
+<div class="wager-row">
+<input class="wager-input" type="number" id="wager-${g.id}" placeholder="Peels to wager" min="1" step="1" oninput="updatePreview('${g.id}')"/>
+<button class="place-btn" id="placebtn-${g.id}" onclick="placeBet('${g.id}')">Place Bet</button>
+</div>
+<div class="payout-preview" id="preview-${g.id}"></div>`}
+</div>`;
+ }).join('');
+ }
+
+ function selectPick(gameId, team, odds) {
+ picks[gameId] = { team, odds };
+ document.querySelectorAll(`[id^="pb-${gameId}-"]`).forEach(b =>b.classList.toggle('selected', b.textContent.startsWith(team)));
+ updatePreview(gameId);
+ }
+
+ function updatePreview(gameId) {
+ const w = parseFloat(document.getElementById('wager-' + gameId)?.value) || 0;
+ const p = document.getElementById('preview-' + gameId);
+ const pick = picks[gameId];
+ if (p) p.textContent = (w >0 && pick) ? `Betting on ${pick.team} → win ${Math.round(w * pick.odds)} Peels` :'';
+ }
+
+ async function placeBet(gameId) {
+ if (!currentUser) { toast('Sign in first!'); return; }
+ const pick = picks[gameId];
+ if (!pick) { toast('Choose a team first!'); return; }
+ const wager = parseFloat(document.getElementById('wager-' + gameId)?.value);
+ if (!wager || wager<= 0) { toast('Enter a valid wager'); return; }
+ if (wager >currentProfile.peels) { toast('Not enough Peels!'); return; }
+
+ const btn = document.getElementById('placebtn-' + gameId);
+ if (btn) { btn.disabled = true; btn.textContent ='...'; }
+
+ const wagerRounded = Math.round(wager);
+ const potential = Math.round(wagerRounded * pick.odds);
+ const newPeels = Math.round(currentProfile.peels - wagerRounded);
+
+ const { error: betError } = await supabase.from('bets').insert({
+ user_id: currentUser.id, game_id: gameId, pick: pick.team,
+ odds: pick.odds, wager: wagerRounded, status:'pending', potential
+ });
+ if (betError) { toast('Error placing bet. Try again.'); if (btn) { btn.disabled = false; btn.textContent ='Place Bet'; } return; }
+
+ await supabase.from('profiles').update({ peels: newPeels }).eq('id', currentUser.id);
+ currentProfile.peels = newPeels;
+
+ await refreshHeader();
+ renderGames();
+ toast(`Bet placed! ${wagerRounded} Peels on ${pick.team}`);
+ }
+
+ // ─── My Bets page ─────────────────────────────────────────
+ async function renderMyBets() {
+ if (!currentUser) return;
+ const { data: myBets } = await supabase.from('bets').select('*, games(t1, t2)').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+ const bets = myBets || [];
+ const won = bets.filter(b =>b.status ==='won').length;
+ const pending = bets.filter(b =>b.status ==='pending').length;
+ document.getElementById('my-bets-stats').innerHTML = `
+<div class="stat-box"><div class="stat-num">${pending}</div><div class="stat-lbl">Pending</div></div>
+<div class="stat-box"><div class="stat-num" style="color:#6fcf97">${won}</div><div class="stat-lbl">Won</div></div>`;
+ const el = document.getElementById('my-bets-list');
+ if (!bets.length) { el.innerHTML ='<div class="no-games">No bets yet. Go make some picks!</div>'; return; }
+ el.innerHTML = bets.map(b =>`
+<div class="bet-item">
+<div>
+<div style="font-weight:600;font-size:14px">${b.games ? b.games.t1 +' vs' + b.games.t2 :'Game'}</div>
+<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">Pick: ${b.pick} (${b.odds}x) · ${b.wager} Peels → ${b.potential} if win</div>
+</div>
+<span class="bet-status status-${b.status}">${b.status}</span>
+</div>`).join('');
+ }
+
+ // ─── Leaderboard ──────────────────────────────────────────
+ async function renderLeaderboard() {
+ const el = document.getElementById('lb-list');
+ el.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
+ const { data } = await supabase.from('profiles').select('username, peels').eq('is_admin', false).order('peels', { ascending: false });
+ const players = data || [];
+ if (!players.length) { el.innerHTML ='<div class="no-games">No players yet!</div>'; return; }
+ el.innerHTML = players.map((u, i) =>`
+<div class="lb-row">
+<div class="lb-rank">${i === 0 ?'' : i === 1 ?'' : i === 2 ?'' : i + 1}</div>
+<div class="lb-name">${u.username}${currentProfile && u.username === currentProfile.username ?'<span style="font-size:11px;color:rgba(255,215,0,0.4)">(you)</span>' :''}</div>
+<div class="lb-peels">${Math.round(u.peels)}<span>Peels</span></div>
+</div>`).join('');
+ }
+
+ // ─── Admin ────────────────────────────────────────────────
+ function syncWinPct(changed) {
+ const v = parseFloat(document.getElementById('a-wp' + changed).value);
+ if (!isNaN(v) && v >= 1 && v<= 99) document.getElementById('a-wp' + (changed === 1 ? 2 : 1)).value = Math.max(1, Math.min(99, 100 - v));
+ updateOddsPreview();
+ }
+
+ function updateOddsPreview() {
+ const t1 = document.getElementById('a-t1').value.trim() ||'Team 1';
+ const t2 = document.getElementById('a-t2').value.trim() ||'Team 2';
+ const wp1 = parseFloat(document.getElementById('a-wp1').value);
+ const wp2 = parseFloat(document.getElementById('a-wp2').value);
+ if (isNaN(wp1) || isNaN(wp2)) {
+ document.getElementById('preview-odds-1').textContent ='—';
+ document.getElementById('preview-odds-2').textContent ='—';
+ document.getElementById('odds-preview-box').style.display ='none';
+ return;
+ }
+ const o1 = calcPayout(wp1), o2 = calcPayout(wp2);
+ document.getElementById('preview-odds-1').textContent = o1 +'x';
+ document.getElementById('preview-odds-2').textContent = o2 +'x';
+ document.getElementById('odds-preview-box').style.display ='flex';
+ const fav = wp1 >= wp2 ? `${t1} (${wp1}%) → ${o1}x` : `${t2} (${wp2}%) → ${o2}x`;
+ const dog = wp1< wp2 ? `${t1} (${wp1}%) → ${o1}x` : `${t2} (${wp2}%) → ${o2}x`;
+ document.getElementById('fav-label').textContent = fav;
+ document.getElementById('dog-label').textContent = dog;
+ }
+
+ async function addGame() {
+ const t1 = document.getElementById('a-t1').value.trim();
+ const t2 = document.getElementById('a-t2').value.trim();
+ const wp1 = parseFloat(document.getElementById('a-wp1').value);
+ const wp2 = parseFloat(document.getElementById('a-wp2').value);
+ const date = document.getElementById('a-date').value;
+ const lock = date; // Lock time = game start time
+ if (!t1 || !t2) { toast('Enter both team names'); return; }
+ if (isNaN(wp1) || isNaN(wp2) || wp1< 1 || wp2< 1) { toast('Enter valid win percentages'); return; }
+ // Convert local datetime to UTC for storage
+ const toUTC = (local) =>local ? new Date(local).toISOString() : null;
+ const { error } = await supabase.from('games').insert({ t1, t2, wp1, wp2, game_date: toUTC(date), lock_time: toUTC(lock), status:'open' });
+ if (error) { toast('Error adding game:' + error.message); return; }
+ ['a-t1','a-t2','a-wp1','a-wp2','a-date'].forEach(id =>document.getElementById(id).value ='');
+ document.getElementById('preview-odds-1').textContent ='—';
+ document.getElementById('preview-odds-2').textContent ='—';
+ document.getElementById('odds-preview-box').style.display ='none';
+ toast('Game added!'); renderAdminGames();
+ }
+
+ async function renderAdmin() {
+ await Promise.all([renderAdminGames(), renderAdminPlayers(), renderAdminBots()]);
+ renderAdminCardsSection();
+ }
+
+ async function renderAdminGames() {
+ const el = document.getElementById('admin-games-list');
+ el.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
+ const { data: games } = await supabase.from('games').select('*').order('created_at', { ascending: false });
+ window._adminGamesCache = games || [];
+ if (!games || !games.length) { el.innerHTML ='<div class="no-games" style="padding:16px">No games added yet.</div>'; return; }
+ el.innerHTML = games.map(g =>`
+<div class="admin-game-item">
+<div class="admin-game-info">
+<strong>${escapeHtml(g.t1)} (${g.wp1}%) vs ${escapeHtml(g.t2)} (${g.wp2}%)</strong>
+<small>Payouts: ${calcPayout(g.wp1)}x / ${calcPayout(g.wp2)}x${g.game_date ?' ·' + new Date(g.game_date).toLocaleDateString() :''}${g.status ==='closed' ?'<span class="closed-tag">closed</span>' :''}</small>
+</div>
+ ${g.status ==='open'
+ ? `<div style="display:flex;flex-direction:column;gap:6px;min-width:180px">
+<div class="result-btns">
+<button class="result-btn admin-resolve-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" data-game-id="${g.id}" data-winner="${escapeAttr(g.t1)}">${escapeHtml(g.t1)} wins</button>
+<button class="result-btn admin-resolve-btn" style="color:#6fcf97;border-color:rgba(111,207,151,0.4)" data-game-id="${g.id}" data-winner="${escapeAttr(g.t2)}">${escapeHtml(g.t2)} wins</button>
+</div>
+<button class="result-btn admin-edit-btn" style="color:#60a5fa;border-color:rgba(96,165,250,0.4);width:100%" data-game-id="${g.id}">️ Edit Game</button>
+</div>`
+ : `<span style="font-size:12px;color:rgba(255,255,255,0.3)">Winner: ${escapeHtml(g.winner) ||'—'}</span>`}
+</div>`).join('');
+ }
+
+ // Event delegation for admin games list - survives re-renders, no inline onclick issues
+ document.addEventListener('click', function(e) {
+ const resolveBtn = e.target.closest('.admin-resolve-btn');
+ if (resolveBtn) {
+ resolveGame(resolveBtn.dataset.gameId, resolveBtn.dataset.winner);
+ return;
+ }
+ const editBtn = e.target.closest('.admin-edit-btn');
+ if (editBtn) {
+ const game = (window._adminGamesCache || []).find(g =>g.id === editBtn.dataset.gameId);
+ if (game) editGame(game.id, game.t1, game.t2, game.wp1, game.wp2, game.game_date ||'', game.lock_time ||'');
+ return;
+ }
+ });
+
+ async function renderAdminPlayers() {
+ const el = document.getElementById('admin-players-list');
+ const { data } = await supabase.from('profiles').select('id, username, peels').eq('is_admin', false).order('peels', { ascending: false });
+ const players = data || [];
+ if (!players.length) { el.innerHTML ='<div class="no-games" style="padding:12px">No players yet.</div>'; return; }
+ el.innerHTML = players.map(u =>`
+<div class="admin-game-item">
+<div class="admin-game-info"><strong>${u.username}</strong></div>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-family:'Bangers',cursive;color:#FFD700;font-size:16px">${Math.round(u.peels)}</span>
+<button class="result-btn" style="padding:5px 10px;font-size:12px" onclick="adjustPeels('${u.id}','${u.username}')">Adjust</button>
+</div>
+</div>`).join('');
+ }
+
+ // ─── Edit game ───────────────────────────────────────────────
+ function editGame(gameId, t1, t2, wp1, wp2, gameDate, lockTime) {
+ document.getElementById('edit-game-id').value = gameId;
+ document.getElementById('edit-t1').value = t1;
+ document.getElementById('edit-t2').value = t2;
+ document.getElementById('edit-wp1').value = wp1;
+ document.getElementById('edit-wp2').value = wp2;
+ // Convert UTC dates back to local datetime-local format
+ if (gameDate) {
+ const d = new Date(gameDate);
+ document.getElementById('edit-date').value = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+ } else {
+ document.getElementById('edit-date').value ='';
+ }
+ if (lockTime) {
+ const l = new Date(lockTime);
+ document.getElementById('edit-lock').value = new Date(l.getTime() - l.getTimezoneOffset()*60000).toISOString().slice(0,16);
+ } else {
+ document.getElementById('edit-lock').value ='';
+ }
+ syncEditWinPct(1);
+ setError('edit-game-error','');
+ document.getElementById('edit-game-modal').style.display ='flex';
+ }
+
+ function syncEditWinPct(changed) {
+ const v = parseFloat(document.getElementById('edit-wp' + changed).value);
+ if (!isNaN(v) && v >= 1 && v<= 99) {
+ document.getElementById('edit-wp' + (changed === 1 ? 2 : 1)).value = Math.max(1, Math.min(99, 100 - v));
+ }
+ const wp1 = parseFloat(document.getElementById('edit-wp1').value);
+ const wp2 = parseFloat(document.getElementById('edit-wp2').value);
+ if (!isNaN(wp1)) document.getElementById('edit-odds-1').textContent = calcPayout(wp1) +'x';
+ if (!isNaN(wp2)) document.getElementById('edit-odds-2').textContent = calcPayout(wp2) +'x';
+ }
+
+ async function saveEditGame() {
+ setError('edit-game-error','');
+ const gameId = document.getElementById('edit-game-id').value;
+ const t1 = document.getElementById('edit-t1').value.trim();
+ const t2 = document.getElementById('edit-t2').value.trim();
+ const wp1 = parseFloat(document.getElementById('edit-wp1').value);
+ const wp2 = parseFloat(document.getElementById('edit-wp2').value);
+ const date = document.getElementById('edit-date').value;
+ const lock = document.getElementById('edit-lock').value;
+ if (!t1 || !t2) { setError('edit-game-error','Enter both team names.'); return; }
+ if (isNaN(wp1) || isNaN(wp2)) { setError('edit-game-error','Enter valid win percentages.'); return; }
+ const toUTC = (local) =>local ? new Date(local).toISOString() : null;
+ const { error } = await supabase.from('games').update({
+ t1, t2, wp1, wp2,
+ game_date: toUTC(date),
+ lock_time: toUTC(lock)
+ }).eq('id', gameId);
+ if (error) { setError('edit-game-error', error.message); return; }
+ closeModal('edit-game-modal');
+ toast('Game updated!');
+ renderAdminGames();
+ renderGames(); // refresh player-facing games too
+ }
+
+ function resolveGame(gameId, winner) {
+ const games = document.querySelectorAll('.admin-game-info strong');
+ pendingResolve = { gameId, winner };
+ document.getElementById('resolve-body').textContent = `Mark"${winner}" as the winner? All winning bets will be paid out automatically.`;
+ document.getElementById('resolve-modal').style.display ='flex';
+ }
+
+ async function confirmResolve() {
+ closeModal('resolve-modal');
+ const { gameId, winner } = pendingResolve;
+ toast('Resolving game...');
+
+ // Close the game first
+ const { error: gameError } = await supabase.from('games').update({ status:'closed', winner }).eq('id', gameId);
+ if (gameError) { toast('Error closing game:' + gameError.message); return; }
+
+ // Call edge function to settle bets with service role (bypasses RLS)
+ try {
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/settle-bets`, {
+ method:'POST',
+ headers: {
+'Content-Type':'application/json',
+'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+ },
+ body: JSON.stringify({ game_id: gameId, winner })
+ });
+ const result = await res.json();
+ if (res.ok) {
+ await refreshHeader();
+ renderAdmin();
+ toast(`Done! ${result.won} won, ${result.lost} lost`);
+ } else {
+ toast('Edge function error:' + JSON.stringify(result));
+ renderAdmin();
+ }
+ } catch(e) {
+ toast('Error settling bets:' + e.message);
+ renderAdmin();
+ }
+ }
+
+ function adjustPeels(userId, username) {
+ pendingAdjust = { userId };
+ document.getElementById('adjust-title').textContent ='Adjust:' + username;
+ document.getElementById('adjust-input').value ='';
+ setError('adjust-error','');
+ document.getElementById('adjust-modal').style.display ='flex';
+ setTimeout(() =>document.getElementById('adjust-input').focus(), 100);
+ }
+
+ async function confirmAdjust() {
+ const amt = parseFloat(document.getElementById('adjust-input').value);
+ if (isNaN(amt)) { setError('adjust-error','Enter a valid number.'); return; }
+ const { data: profile } = await supabase.from('profiles').select('peels, username').eq('id', pendingAdjust.userId).single();
+ const newPeels = Math.round(profile.peels + amt);
+ await supabase.from('profiles').update({ peels: newPeels }).eq('id', pendingAdjust.userId);
+ closeModal('adjust-modal');
+ renderAdminPlayers(); refreshHeader();
+ toast(`${profile.username}: ${amt >= 0 ?'+' :''}${amt} Peels`);
+ }
+
+ // ─── Cards ───────────────────────────────────────────────────
+ const RARITY_MULTIPLIER = { common: 1, rare: 2, legendary: 3, mythic: 5 };
+ const RARITY_COLOR = { common:'#aaa', rare:'#60a5fa', legendary:'#FFD700', mythic:'#e879f9' };
+ const UPGRADE_COST = { common: 200, rare: 500, legendary: 1000 };
+ const RARITY_ORDER = ['common','rare','legendary','mythic'];
+ const RARITY_NEXT = { common:'rare', rare:'legendary', legendary:'mythic' };
+
+ function cardHTML(card, showMult=true, lockedRarity=null, userCardId=null, showSell=false, earnedPeels=null) {
+ const rarity = lockedRarity || card.rarity;
+ const mult = RARITY_MULTIPLIER[rarity] || 1;
+ const pts = earnedPeels !== null ? earnedPeels : (card.total_peels_earned || 0);
+ const sellPrice = Math.round(200 * (mult / 5)); // sell value based on rarity
+ return `<div class="player-card ${rarity}">
+<div class="card-rarity rarity-${rarity}">${rarity} ${rarity==='mythic'?'':rarity==='legendary'?'⭐':rarity==='rare'?'':'·'}</div>
+<div class="card-player">${card.player_name}</div>
+<div class="card-team" style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap">${card.position?`<span style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:50px;padding:2px 10px;font-size:11px;font-weight:700;color:#FFD700">${card.position==='Pitcher'?' Pitcher':' Batter'}</span>`:''}<span style="font-size:12px;color:rgba(255,255,255,0.5)">${card.team_name||''}</span></div>
+<div class="card-pts">${pts}</div>
+<div class="card-pts-lbl">Peels earned</div>
+ ${showMult?`<div class="card-mult" style="color:${RARITY_COLOR[rarity]}">${mult}x multiplier</div>`:''}
+ ${showSell&&userCardId&&rarity!=='mythic'?`<button onclick="upgradeCard('${userCardId}','${card.player_name}','${rarity}')" style="margin-top:6px;width:100%;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">⬆ Upgrade to ${RARITY_NEXT[rarity]||''} — ${UPGRADE_COST[rarity]||0}</button>`:''}
+ ${showSell&&userCardId?`<button onclick="sellCard('${userCardId}','${card.player_name}',${sellPrice})" style="margin-top:4px;width:100%;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">Sell for ${sellPrice}</button>`:''}
+</div>`;
+ }
+
+ async function renderCardsPage() {
+ // Cards feature paused - coming soon placeholder is shown instead
+ return;
+ // Check for unseen earnings first
+ const { data: unseen } = await supabase.from('card_earnings_log')
+ .select('*, player_cards(player_name)')
+ .eq('user_id', currentUser.id)
+ .eq('seen', false)
+ .order('created_at', {ascending: false});
+
+ if (unseen?.length) {
+ showEarningsPopup(unseen);
+ // Mark all as seen
+ await supabase.from('card_earnings_log').update({ seen: true }).eq('user_id', currentUser.id).eq('seen', false);
+ }
+
+ // My cards
+ const myEl = document.getElementById('my-cards-list');
+ myEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
+ const { data: myCards } = await supabase.from('user_cards').select('*, player_cards(*)').eq('user_id', currentUser.id).order('created_at', {ascending: false});
+ if (!myCards?.length) {
+ myEl.innerHTML = `<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">
+ No cards yet!<br/><br/>
+<button class="btn-gold" style="background:#FFD700;color:#1a1a2e;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif" onclick="showStarterCardPicker(currentUser.id)">Claim Your Free Starter Card</button>
+</div>`;
+ } else {
+ myEl.innerHTML = `<div class="cards-grid-collection">${myCards.map(uc =>cardHTML(uc.player_cards, true, uc.locked_rarity, uc.id, true, uc.total_peels_earned || 0)).join('')}</div>`;
+ }
+
+ // Packs
+ const packsEl = document.getElementById('packs-list');
+ const { data: packs } = await supabase.from('card_packs').select('*').order('price');
+ if (!packs?.length) {
+ packsEl.innerHTML ='<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No packs available yet.</div>';
+ } else {
+ packsEl.innerHTML = packs.map(p =>`
+<div class="pack-card ${p.is_starter?'starter-pack':''}">
+<div class="pack-header">
+<div class="pack-name">${p.is_starter?'':''}${p.name}</div>
+<div class="pack-price">${p.price===0?'FREE':p.price+''}</div>
+</div>
+<div class="pack-odds">
+<span style="color:#aaa">Common ${p.common_pct}%</span>·
+<span style="color:#60a5fa">Rare ${p.rare_pct}%</span>·
+<span style="color:#FFD700">Legendary ${p.legendary_pct}%</span>·
+<span style="color:#e879f9">Mythic ${p.mythic_pct||0}%</span>
+</div>
+<button class="pack-btn" onclick="buyPack('${p.id}','${p.name}',${p.price},${p.common_pct},${p.rare_pct},${p.legendary_pct},${p.mythic_pct||0})">
+ ${p.price===0?'Claim Free Pack!':'Open Pack —'+p.price+' Peels'}
+</button>
+</div>`).join('');
+ }
+ }
+
+ let packPurchaseInProgress = false;
+ async function buyPack(packId, packName, price, commonPct, rarePct, legendaryPct, mythicPct=0) {
+ if (!currentUser) { toast('Sign in first!'); return; }
+ if (packPurchaseInProgress) return;
+ packPurchaseInProgress = true;
+
+ try {
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/open-pack`, {
+ method:'POST',
+ headers: {
+'Content-Type':'application/json',
+'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+ },
+ body: JSON.stringify({ pack_id: packId, user_id: currentUser.id })
+ });
+ const result = await res.json();
+ if (!res.ok) {
+ toast('Error:' + (result.error ||'Something went wrong'));
+ packPurchaseInProgress = false;
+ return;
+ }
+ // Update local peels
+ currentProfile.peels = result.new_peels;
+ await refreshHeader();
+ // Show reveal animation
+ document.getElementById('card-reveal-box').innerHTML = cardHTML(result.card);
+ document.getElementById('card-reveal-overlay').style.display ='flex';
+ } catch(e) {
+ toast('Error:' + e.message);
+ }
+ packPurchaseInProgress = false;
+ }
+
+ function closeReveal() {
+ document.getElementById('card-reveal-overlay').style.display ='none';
+ renderCardsPage();
+ }
+
+ // ─── Admin: Packs & Cards ─────────────────────────────────
+ function showCreatePack() {
+ document.getElementById('cp-error') && (document.getElementById('cp-error').textContent ='');
+ document.getElementById('create-pack-modal').style.display ='flex';
+ }
+
+ async function createPack() {
+ const name = document.getElementById('cp-name').value.trim();
+ const price = parseInt(document.getElementById('cp-price').value);
+ const common = parseInt(document.getElementById('cp-common').value);
+ const rare = parseInt(document.getElementById('cp-rare').value);
+ const legendary = parseInt(document.getElementById('cp-legendary').value);
+ const mythic = parseInt(document.getElementById('cp-mythic').value);
+ if (!name) { setError('cp-error','Enter a pack name.'); return; }
+ if (common + rare + legendary + mythic !== 100) { setError('cp-error','Percentages must add up to 100.'); return; }
+ const { error } = await supabase.from('card_packs').insert({ name, price, common_pct: common, rare_pct: rare, legendary_pct: legendary, mythic_pct: mythic });
+ if (error) { setError('cp-error', error.message); return; }
+ closeModal('create-pack-modal');
+ toast('Pack created!');
+ renderAdmin();
+ }
+
+ async function showCreateCard() {
+ const { data: packs } = await supabase.from('card_packs').select('id, name');
+ const sel = document.getElementById('cc-pack-select');
+ sel.innerHTML = (packs||[]).map(p =>`<option value="${p.id}">${p.name}</option>`).join('');
+ document.getElementById('create-card-modal').style.display ='flex';
+ }
+
+ async function createPlayerCard() {
+ const player = document.getElementById('cc-player').value.trim();
+ const team = document.getElementById('cc-team').value.trim();
+ const position = document.getElementById('cc-position').value;
+ const packSel = document.getElementById('cc-pack-select');
+ const packIds = Array.from(packSel.selectedOptions).map(o =>o.value);
+ if (!player) { setError('cc-error','Enter player name.'); return; }
+ if (!packIds.length) { setError('cc-error','Select at least one pack.'); return; }
+ // Insert one card record (rarity no longer fixed - determined at pull time)
+ const { data: card, error } = await supabase.from('player_cards').insert({ 
+ player_name: player, team_name: team, position: position||null, pack_id: packIds[0]
+ }).select().single();
+ if (error) { setError('cc-error', error.message); return; }
+ // Add to all packs via junction table
+ const allPackLinks = packIds.map(pid =>({ card_id: card.id, pack_id: pid }));
+ await supabase.from('card_pack_members').insert(allPackLinks);
+ closeModal('create-card-modal');
+ toast('Card created in' + packIds.length +' pack(s)! 🃏');
+ renderAdmin();
+ }
+
+ async function showPlayerStats() {
+ const { data: cards } = await supabase.from('player_cards').select('id, player_name, team_name, position').order('player_name');
+ const sel = document.getElementById('ps-player-select');
+ sel.innerHTML = (cards||[]).map(c =>`<option value="${c.id}">${c.player_name}${c.position?' ('+c.position+')':''} — ${c.team_name||''}</option>`).join('');
+ document.getElementById('player-stats-modal').style.display ='flex';
+ }
+
+ async function submitPlayerStats() {
+ setError('ps-error','');
+ const cardId = document.getElementById('ps-player-select').value;
+ const basePeels = parseInt(document.getElementById('ps-base-peels').value);
+ const notes = document.getElementById('ps-notes').value.trim();
+ if (!cardId) { setError('ps-error','Select a player.'); return; }
+ if (!basePeels || basePeels< 0) { setError('ps-error','Enter valid peels amount.'); return; }
+
+ // Get the card to find rarity
+ const { data: card } = await supabase.from('player_cards').select('*').eq('id', cardId).single();
+ if (!card) { setError('ps-error','Card not found.'); return; }
+ const mult = RARITY_MULTIPLIER[card.rarity] || 1;
+ const payout = Math.round(basePeels * mult);
+
+ // Find all users who have this card
+ const { data: holders } = await supabase.from('user_cards').select('*').eq('card_id', cardId);
+ if (!holders?.length) { setError('ps-error','No one owns this card yet.'); return; }
+
+ // Log the stat entry
+ const { data: logEntry } = await supabase.from('card_stat_logs').insert({ 
+ card_id: cardId, base_peels: basePeels, notes, created_at: new Date().toISOString() 
+ }).select().single();
+
+ // Pay out each holder
+ for (const holder of holders) {
+ const holderMult = RARITY_MULTIPLIER[holder.locked_rarity || card.rarity] || 1;
+ const holderPayout = Math.round(basePeels * holderMult);
+ // Update user_cards total + log for notification
+ await supabase.from('user_cards').update({ 
+ total_peels_earned: (holder.total_peels_earned || 0) + holderPayout 
+ }).eq('id', holder.id);
+ // Log per-user notification
+ await supabase.from('card_earnings_log').insert({
+ user_id: holder.user_id,
+ user_card_id: holder.id,
+ card_id: cardId,
+ payout: holderPayout,
+ notes,
+ seen: false
+ });
+ // Pay peels to profile
+ const { data: profile } = await supabase.from('profiles').select('peels').eq('id', holder.user_id).single();
+ if (profile) await supabase.from('profiles').update({ peels: Math.round(profile.peels + holderPayout) }).eq('id', holder.user_id);
+ }
+
+ closeModal('player-stats-modal');
+ await refreshHeader();
+ toast(`Paid out to ${holders.length} card holder(s)! 🃏`);
+ }
+
+ async function renderAdminCardsSection() {
+ // Packs
+ const packsEl = document.getElementById('admin-packs-list');
+ if (packsEl) {
+ const { data: packs } = await supabase.from('card_packs').select('*');
+ packsEl.innerHTML = (packs||[]).length ? packs.map(p =>`
+<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;display:flex;justify-content:space-between">
+<span>${p.name}</span>
+<span style="color:rgba(255,215,0,0.7)">${p.price} · C${p.common_pct}%/R${p.rare_pct}%/L${p.legendary_pct}%/M${p.mythic_pct||0}%</span>
+</div>`).join('') :'<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No packs yet</div>';
+ }
+ // Cards
+ const cardsEl = document.getElementById('admin-cards-list');
+ if (cardsEl) {
+ const { data: cards } = await supabase.from('player_cards').select('*, card_packs(name)').order('player_name');
+ cardsEl.innerHTML = (cards||[]).length ? cards.map(c =>`
+<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;display:flex;justify-content:space-between">
+<span>${c.player_name}<span style="color:${RARITY_COLOR[c.rarity]}">(${c.rarity})</span></span>
+<span style="color:rgba(255,255,255,0.4)">${c.card_packs?.name||'No pack'}</span>
+</div>`).join('') :'<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No cards yet</div>';
+ }
+ }
+
+ // ─── Earnings popup ──────────────────────────────────────────
+ function showEarningsPopup(earnings) {
+ const existing = document.getElementById('earnings-popup');
+ if (existing) existing.remove();
+ const total = earnings.reduce((sum, e) =>sum + e.payout, 0);
+ const lines = earnings.map(e =>`
+<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">
+<span style="color:rgba(255,255,255,0.8)">${e.player_cards?.player_name||'Player'} ${e.notes?'·'+e.notes:''}</span>
+<span style="color:#FFD700;font-weight:700">+${e.payout}</span>
+</div>`).join('');
+ const popup = document.createElement('div');
+ popup.id ='earnings-popup';
+ popup.style.cssText ='position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:400';
+ popup.innerHTML = `
+<div style="background:#1e293b;border:2px solid #FFD700;border-radius:20px;padding:24px;width:340px;max-width:95vw;max-height:80vh;overflow-y:auto">
+<div style="font-family:'Bangers',cursive;font-size:26px;color:#FFD700;letter-spacing:2px;text-align:center;margin-bottom:4px">🃏 Card Earnings!</div>
+<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:16px">Your cards earned Peels while you were away</div>
+ ${lines}
+<div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:15px">
+<span>Total earned</span>
+<span style="color:#FFD700;font-family:'Bangers',cursive;font-size:20px">+${total}</span>
+</div>
+<button onclick="document.getElementById('earnings-popup').remove()" style="margin-top:14px;width:100%;background:#FFD700;color:#1a1a2e;border:none;padding:11px;border-radius:12px;font-weight:700;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif">Sweet!</button>
+</div>`;
+ document.body.appendChild(popup);
+ }
+
+ // ─── Upgrade card ────────────────────────────────────────────
+ async function upgradeCard(userCardId, playerName, currentRarity) {
+ const cost = UPGRADE_COST[currentRarity];
+ const nextRarity = RARITY_NEXT[currentRarity];
+ if (!nextRarity) { toast('Already max rarity!'); return; }
+ if (!confirm(`Upgrade ${playerName} from ${currentRarity} to ${nextRarity} for ${cost} Peels?`)) return;
+
+ const { data: profile } = await supabase.from('profiles').select('peels').eq('id', currentUser.id).single();
+ if (!profile || profile.peels< cost) { toast('Not enough Peels!'); return; }
+
+ // Deduct peels
+ await supabase.from('profiles').update({ peels: Math.round(profile.peels - cost) }).eq('id', currentUser.id);
+ // Update card rarity
+ await supabase.from('user_cards').update({ locked_rarity: nextRarity }).eq('id', userCardId);
+
+ await refreshHeader();
+ toast(`${playerName} upgraded to ${nextRarity}!`);
+ renderCardsPage();
+ }
+
+ // ─── Sell card ───────────────────────────────────────────────
+ async function sellCard(userCardId, playerName, sellPrice) {
+ if (!confirm(`Sell ${playerName} for ${sellPrice} Peels? This cannot be undone.`)) return;
+ const { error } = await supabase.from('user_cards').delete().eq('id', userCardId);
+ if (error) { toast('Error selling card:' + error.message); return; }
+ const { data: profile } = await supabase.from('profiles').select('peels').eq('id', currentUser.id).single();
+ if (profile) {
+ await supabase.from('profiles').update({ peels: Math.round(profile.peels + sellPrice) }).eq('id', currentUser.id);
+ await refreshHeader();
+ }
+ toast(`Sold ${playerName} for ${sellPrice} Peels!`);
+ renderCardsPage();
+ }
+
+ // ─── Starter card picker ─────────────────────────────────────
+ let starterUserId = null;
+ let allPlayersList = [];
+
+ async function showStarterCardPicker(userId) {
+ starterUserId = userId;
+ const { data: players } = await supabase.from('player_cards').select('id, player_name, team_name, position').order('player_name');
+ // Deduplicate by player name (show each player once)
+ const seen = new Set();
+ allPlayersList = (players||[]).filter(p =>{
+ if (seen.has(p.player_name)) return false;
+ seen.add(p.player_name);
+ return true;
+ });
+ filterStarterPlayers();
+ document.getElementById('starter-card-modal').style.display ='flex';
+ }
+
+ function filterStarterPlayers() {
+ const q = document.getElementById('starter-search').value.toLowerCase();
+ const filtered = allPlayersList.filter(p =>p.player_name.toLowerCase().includes(q));
+ const el = document.getElementById('starter-player-list');
+ el.innerHTML = filtered.map(p =>`
+<div class="team-item" onclick="claimStarterCard('${p.player_name}')">
+<div>
+<div class="team-name-display">${p.player_name}</div>
+<div class="team-conf">${p.position||''} ${p.team_name||''}</div>
+</div>
+<button class="draft-btn">Pick</button>
+</div>`).join('');
+ }
+
+ async function claimStarterCard(playerName) {
+ setError('starter-error','');
+ const uid = starterUserId || currentUser?.id;
+ if (!uid) return;
+ // Get any card for this player (common preferred)
+ const { data: cards } = await supabase.from('player_cards').select('id, rarity').eq('player_name', playerName).order('rarity');
+ if (!cards?.length) { setError('starter-error','Player not found.'); return; }
+ const card = cards[0];
+ const { error } = await supabase.from('user_cards').insert({
+ user_id: uid, card_id: card.id, total_peels_earned: 0, locked_rarity:'common'
+ });
+ if (error) { setError('starter-error', error.message); return; }
+ closeModal('starter-card-modal');
+ toast(`${playerName} added to your collection as Common! 🃏`);
+ if (currentUser) renderCardsPage();
+ }
+
+ // ─── Boot ─────────────────────────────────────────────────
+ async function boot() {
+ try {
+ const { data: { session } } = await supabase.auth.getSession();
+ if (session?.user) {
+ currentUser = session.user;
+ const profile = await loadProfile(currentUser.id);
+ if (profile) { applyProfile(profile); }
+ } else {
+ document.getElementById('auth-overlay').style.display ='flex';
+ }
+ renderGames();
+ renderLeaderboard();
+
+ supabase.auth.onAuthStateChange(async (event, session) =>{
+ if (event ==='SIGNED_IN' && session?.user) {
+ currentUser = session.user;
+ const profile = await loadProfile(currentUser.id);
+ if (profile) { applyProfile(profile); renderGames(); renderLeaderboard(); }
+ } else if (event ==='SIGNED_OUT') {
+ currentUser = null; currentProfile = null;
+ document.getElementById('auth-overlay').style.display ='flex';
+ showPage('games', document.getElementById('nav-games'));
+ }
+ });
+ } catch(e) {
+ console.error('Boot error:', e);
+ }
+ }
+
+ boot();
 </script>
 </body>
 </html>
