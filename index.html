@@ -201,9 +201,16 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <button class="admin-btn" onclick="addGame()">+ Add Game</button>
 </div>
 <div class="card" style="margin-top:12px"><h3 style="color:#FFD700;margin-bottom:12px">Resolve Games</h3><div id="admin-games-list"></div></div>
-<div class="card" style="margin-top:12px"><h3 style="color:#FFD700;margin-bottom:12px">Manage Players</h3><div id="admin-players-list"></div></div>
 <div class="card" style="margin-top:12px">
-<h3 style="color:#FFD700;margin-bottom:12px">Bot Accounts</h3>
+<details>
+<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ Manage Players</summary>
+<div id="admin-players-list" style="margin-top:10px"></div>
+</details>
+</div>
+<div class="card" style="margin-top:12px">
+<details>
+<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ Bot Accounts</summary>
+<div style="margin-top:10px">
 <p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Add fake names to the leaderboard to make the app feel more active.</p>
 <div class="grid2">
 <div class="input-group"><label>Bot Name</label><input id="bot-name" placeholder="e.g. Slugger99"/></div>
@@ -212,15 +219,21 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <button class="admin-btn" onclick="addBot()">+ Add Bot</button>
 <div id="admin-bots-list" style="margin-top:12px"></div>
 </div>
+</details>
+</div>
 <div class="card" style="margin-top:12px">
 <h3 style="color:#FFD700;margin-bottom:12px">Card Packs</h3>
 <button class="admin-btn" onclick="showCreatePack()" style="margin-bottom:10px">+ Create Pack</button>
 <div id="admin-packs-list"></div>
 </div>
 <div class="card" style="margin-top:12px">
-<h3 style="color:#FFD700;margin-bottom:12px">🃏 Player Cards</h3>
+<details>
+<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ Player Cards</summary>
+<div style="margin-top:10px">
 <button class="admin-btn" onclick="showCreateCard()" style="margin-bottom:10px">+ Create Player Card</button>
 <div id="admin-cards-list"></div>
+</div>
+</details>
 </div>
 <div class="card" style="margin-top:12px">
 <h3 style="color:#FFD700;margin-bottom:12px">Enter Player Stats</h3>
@@ -353,10 +366,6 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <option value="Pitcher">Pitcher</option>
 </select>
 </div>
-<div class="input-group"><label>Packs (select multiple)</label>
-<select id="cc-pack-select" multiple style="height:100px"></select>
-</div>
-<p style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:-8px;margin-bottom:8px">Hold Ctrl/Cmd to select multiple packs</p>
 <div class="auth-error" id="cc-error"></div>
 <div class="modal-btns">
 <button class="modal-cancel" onclick="closeModal('create-card-modal')">Cancel</button>
@@ -1158,9 +1167,6 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  }
 
  async function showCreateCard() {
- const { data: packs } = await supabase.from('card_packs').select('id, name');
- const sel = document.getElementById('cc-pack-select');
- sel.innerHTML = (packs||[]).map(p =>`<option value="${p.id}">${p.name}</option>`).join('');
  document.getElementById('create-card-modal').style.display ='flex';
  }
 
@@ -1168,20 +1174,20 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  const player = document.getElementById('cc-player').value.trim();
  const team = document.getElementById('cc-team').value.trim();
  const position = document.getElementById('cc-position').value;
- const packSel = document.getElementById('cc-pack-select');
- const packIds = Array.from(packSel.selectedOptions).map(o =>o.value);
  if (!player) { setError('cc-error','Enter player name.'); return; }
- if (!packIds.length) { setError('cc-error','Select at least one pack.'); return; }
- // Insert one card record (rarity no longer fixed - determined at pull time)
+
+ // Find the "All Players" pack automatically
+ const { data: allPlayersPack } = await supabase.from('card_packs').select('id').ilike('name','All Players').limit(1).maybeSingle();
+ if (!allPlayersPack) { setError('cc-error','Could not find the "All Players" pack. Make sure it exists.'); return; }
+
  const { data: card, error } = await supabase.from('player_cards').insert({ 
- player_name: player, team_name: team, position: position||null, pack_id: packIds[0]
+ player_name: player, team_name: team, position: position||null, pack_id: allPlayersPack.id
  }).select().single();
  if (error) { setError('cc-error', error.message); return; }
- // Add to all packs via junction table
- const allPackLinks = packIds.map(pid =>({ card_id: card.id, pack_id: pid }));
- await supabase.from('card_pack_members').insert(allPackLinks);
+
+ await supabase.from('card_pack_members').insert({ card_id: card.id, pack_id: allPlayersPack.id });
  closeModal('create-card-modal');
- toast('Card created in' + packIds.length +' pack(s)! 🃏');
+ toast(player +' added to All Players pack! 🃏');
  renderAdmin();
  }
 
