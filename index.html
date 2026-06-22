@@ -8,8 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
  *{box-sizing:border-box;margin:0;padding:0}
- body{font-family:'DM Sans',sans-serif;background:#1a1a2e;color:#fff;min-height:100vh}
- .app{max-width:900px;margin:0 auto;padding:16px}
+ body{font-family:'DM Sans',sans-serif;background:#13132a;color:#fff;min-height:100vh;background-image:radial-gradient(circle at 50% 0%, rgba(255,215,0,0.06), transparent 60%)}
+ .app{max-width:1100px;margin:0 auto;padding:20px}
+ @media (min-width: 700px){
+ .app{padding:28px 32px}
+ .nav{gap:10px}
+ }
  .header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#FFD700;border-radius:16px;margin-bottom:16px}
  .logo{font-family:'Bangers',cursive;font-size:28px;color:#1a1a2e;letter-spacing:2px}
  .logo span{color:#2d6a4f}
@@ -164,6 +168,9 @@
 </div>
 <div class="auth-error" id="feedback-error"></div>
 <button class="admin-btn" onclick="submitFeedback()" id="feedback-submit-btn">Send Feedback</button>
+<div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,215,0,0.1);font-size:13px;color:rgba(255,255,255,0.4)">
+Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD700;text-decoration:underline">peelspickem@gmail.com</a>
+</div>
 </div>
 </div>
 <div id="page-admin" class="page">
@@ -768,14 +775,14 @@
  async function renderLeaderboard() {
  const el = document.getElementById('lb-list');
  el.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
- const { data } = await supabase.from('profiles').select('username, peels').eq('is_admin', false).order('peels', { ascending: false });
+ const { data } = await supabase.from('profiles').select('username, peels').eq('is_admin', false).order('peels', { ascending: false }).limit(25);
  const players = data || [];
  if (!players.length) { el.innerHTML ='<div class="no-games">No players yet!</div>'; return; }
  el.innerHTML = players.map((u, i) =>`
 <div class="lb-row">
-<div class="lb-rank">${i === 0 ?'' : i === 1 ?'' : i === 2 ?'' : i + 1}</div>
-<div class="lb-name">${u.username}${currentProfile && u.username === currentProfile.username ?'<span style="font-size:11px;color:rgba(255,215,0,0.4)">(you)</span>' :''}</div>
-<div class="lb-peels">${Math.round(u.peels)}<span>Peels</span></div>
+<div class="lb-rank">${i + 1}</div>
+<div class="lb-name">${u.username}${currentProfile && u.username === currentProfile.username ?' <span style="font-size:11px;color:rgba(255,215,0,0.4)">(you)</span>' :''}</div>
+<div class="lb-peels">${Math.round(u.peels)} <span>Peels</span></div>
 </div>`).join('');
  }
 
