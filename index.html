@@ -252,6 +252,15 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 </details>
 </div>
 <div class="card" style="margin-top:12px">
+<details>
+<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ All Card Points (incl. unowned)</summary>
+<div style="margin-top:10px">
+<p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Total points logged per card from synced games, whether or not anyone owns it yet.</p>
+<div id="admin-card-points-list"></div>
+</div>
+</details>
+</div>
+<div class="card" style="margin-top:12px">
 <h3 style="color:#FFD700;margin-bottom:12px">Enter Player Stats</h3>
 <button class="admin-btn" onclick="showPlayerStats()">Enter Stats & Pay Out</button>
 </div>
@@ -1473,6 +1482,50 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <span style="color:rgba(255,255,255,0.4)">${c.card_packs?.name||'No pack'}</span>
 </div>`).join('') :'<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No cards yet</div>';
  }
+ // All card points (incl. unowned)
+ renderAdminCardPoints();
+ }
+
+ async function renderAdminCardPoints() {
+ const el = document.getElementById('admin-card-points-list');
+ if (!el) return;
+ el.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
+
+ const { data: logs } = await supabase.from('card_stat_logs').select('card_id, base_peels, notes, game_date');
+ const { data: cards } = await supabase.from('player_cards').select('id, player_name, team_name, position');
+ const { data: userCards } = await supabase.from('user_cards').select('card_id');
+
+ if (!cards?.length) { el.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No cards yet</div>'; return; }
+
+ const ownedCounts = {};
+ for (const uc of (userCards||[])) ownedCounts[uc.card_id] = (ownedCounts[uc.card_id]||0) + 1;
+
+ const totalsByCard = {};
+ const gamesByCard = {};
+ for (const log of (logs||[])) {
+ totalsByCard[log.card_id] = (totalsByCard[log.card_id]||0) + (log.base_peels||0);
+ gamesByCard[log.card_id] = (gamesByCard[log.card_id]||0) + 1;
+ }
+
+ const rows = cards.map(c => ({
+ ...c,
+ totalPts: totalsByCard[c.id] || 0,
+ gamesLogged: gamesByCard[c.id] || 0,
+ owners: ownedCounts[c.id] || 0
+ })).sort((a,b) => b.totalPts - a.totalPts);
+
+ el.innerHTML = rows.map(r =>`
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">
+<div>
+<strong>${escapeHtml(r.player_name)}</strong>
+<span style="color:rgba(255,255,255,0.4)"> ${r.position?'('+r.position+')':''} · ${escapeHtml(r.team_name||'')}</span>
+${r.owners===0?'<span style="color:#ff7675;font-size:11px;margin-left:6px">unowned</span>':`<span style="color:#6fcf97;font-size:11px;margin-left:6px">${r.owners} owner${r.owners>1?'s':''}</span>`}
+</div>
+<div style="text-align:right">
+<div style="color:#FFD700;font-weight:700">${r.totalPts.toFixed(1)} pts</div>
+<div style="color:rgba(255,255,255,0.3);font-size:11px">${r.gamesLogged} game${r.gamesLogged!==1?'s':''} logged</div>
+</div>
+</div>`).join('');
  }
 
  // ─── Earnings popup ──────────────────────────────────────────
