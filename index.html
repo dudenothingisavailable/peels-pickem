@@ -1087,7 +1087,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  if (!gameDate) return;
  listEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading games...</div>';
  try {
- const res = await fetch(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${gameDate}&dateTo=${gameDate}`);
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${gameDate}&dateTo=${gameDate}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const games = await res.json();
  if (!games?.length) { listEl.innerHTML ='<div class="no-games">No games on this date.</div>'; return; }
  listEl.innerHTML = games.map((g) => `
@@ -1116,7 +1116,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  detailEl.style.display ='block';
  detailEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading box score...</div>';
  try {
- const res = await fetch(`https://banana-stats-pages-seven.vercel.app/api/directus-items/box-score?gameId=${gameId}`);
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/directus-items/box-score?gameId=${gameId}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const game = await res.json();
 
  const teamBlock = (team) => {
@@ -1295,7 +1295,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  if (!date) { listEl.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.4)">Pick a date first.</div>'; return; }
  listEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading schedule...</div>';
  try {
- const res = await fetch(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${date}&dateTo=${date}`);
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${date}&dateTo=${date}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const games = await res.json();
  if (!games?.length) { listEl.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.4)">No games found for that date.</div>'; return; }
  listEl.innerHTML = games.map((g, i) => {
@@ -1333,7 +1333,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  listEl.innerHTML ='<div class="loading"><span class="spinner"></span>Looking up games...</div>';
 
  try {
- const res = await fetch(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${gameDate}&dateTo=${gameDate}`);
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${gameDate}&dateTo=${gameDate}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const games = await res.json();
  if (!games?.length) { listEl.innerHTML ='<p style="color:rgba(255,255,255,0.4);font-size:13px">No games found for this date.</p>'; return; }
 
