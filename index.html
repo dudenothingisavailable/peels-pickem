@@ -8,127 +8,143 @@
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
  *{box-sizing:border-box;margin:0;padding:0}
- body{font-family:'DM Sans',sans-serif;background:#13132a;color:#fff;min-height:100vh;background-image:radial-gradient(circle at 50% 0%, rgba(255,215,0,0.06), transparent 60%)}
+ body{font-family:'DM Sans',sans-serif;background:#f7f8fb;color:#1a1a2e;min-height:100vh}
  .app{max-width:1100px;margin:0 auto;padding:20px}
  @media (min-width: 700px){
  .app{padding:28px 32px}
  .nav{gap:10px}
  }
- .header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#FFD700;border-radius:16px;margin-bottom:16px}
+ .header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#FFD700;border-radius:16px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
  .logo{font-family:'Bangers',cursive;font-size:28px;color:#1a1a2e;letter-spacing:2px}
  .logo span{color:#2d6a4f}
- .user-pill{display:flex;align-items:center;gap:8px;background:#1a1a2e;color:#FFD700;padding:8px 14px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer}
+ .user-pill{display:flex;align-items:center;gap:8px;background:#1a1a2e;color:#9a8200;padding:8px 14px;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer}
  .peels-badge{background:#FFD700;color:#1a1a2e;padding:2px 10px;border-radius:50px;font-weight:700;font-size:13px}
  .nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
- .nav-btn{padding:8px 18px;border-radius:50px;border:2px solid #FFD700;background:transparent;color:#FFD700;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:14px;transition:all .2s}
- .nav-btn.active{background:#FFD700;color:#1a1a2e}
+ .nav-btn{padding:8px 18px;border-radius:50px;border:2px solid #e2c200;background:#fff;color:#9a8200;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:14px;transition:all .2s}
+ .nav-btn.active{background:#FFD700;color:#1a1a2e;border-color:#9a8200}
  .page{display:none}.page.active{display:block}
- .card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:12px}
- h2{font-family:'Bangers',cursive;font-size:24px;color:#FFD700;letter-spacing:1px;margin-bottom:12px}
- .game-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.15);border-radius:14px;padding:14px;margin-bottom:10px}
+ .card{background:#fff;border:1px solid #ececf2;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+ h2{font-family:'Bangers',cursive;font-size:24px;color:#1a1a2e;letter-spacing:1px;margin-bottom:12px}
+ .game-card{background:#fff;border:1px solid #ececf2;border-radius:14px;padding:14px;margin-bottom:10px}
  .game-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:10px;gap:8px}
  .team{text-align:center}
- .team-name{font-family:'Bangers',cursive;font-size:18px;color:#FFD700;letter-spacing:1px}
- .team-odds-pill{display:inline-block;background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.25);border-radius:50px;padding:2px 10px;font-size:12px;color:rgba(255,215,0,0.8);margin-top:4px}
- .vs{font-family:'Bangers',cursive;font-size:16px;color:rgba(255,255,255,0.4);text-align:center}
- .game-date{text-align:center;font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:10px}
+ .team-name{font-family:'Bangers',cursive;font-size:18px;color:#1a1a2e;letter-spacing:1px}
+ .team-odds-pill{display:inline-block;background:#fff8d6;border:1px solid #f0dd80;border-radius:50px;padding:2px 10px;font-size:12px;color:#8a7300;margin-top:4px}
+ .vs{font-family:'Bangers',cursive;font-size:16px;color:#b8b8c4;text-align:center}
+ .game-date{text-align:center;font-size:12px;color:#9a9aa8;margin-bottom:10px}
  .pick-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
- .pick-btn{padding:10px;border-radius:10px;border:2px solid rgba(255,215,0,0.3);background:transparent;color:#fff;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:13px;transition:all .15s;text-align:center}
- .pick-btn:hover{border-color:#FFD700;background:rgba(255,215,0,0.1)}
- .pick-btn.selected{background:#FFD700;color:#1a1a2e;border-color:#FFD700}
+ .pick-btn{padding:10px;border-radius:10px;border:2px solid #e2e2ea;background:#fff;color:#1a1a2e;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:13px;transition:all .15s;text-align:center}
+ .pick-btn:hover{border-color:#9a8200;background:#fffaeb}
+ .pick-btn.selected{background:#FFD700;color:#1a1a2e;border-color:#9a8200}
  .pick-btn .btn-payout{display:block;font-size:11px;font-weight:400;margin-top:2px;opacity:0.75}
  .wager-row{display:flex;align-items:center;gap:10px}
- .wager-input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:8px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
- .wager-input::placeholder{color:rgba(255,255,255,0.3)}
+ .wager-input{flex:1;background:#fff;border:1px solid #d8d8e2;color:#1a1a2e;padding:8px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
+ .wager-input::placeholder{color:#b0b0bc}
  .place-btn{background:#FFD700;color:#1a1a2e;border:none;padding:8px 16px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;white-space:nowrap}
  .place-btn:disabled{opacity:0.5;cursor:not-allowed}
- .payout-preview{font-size:12px;color:rgba(255,215,0,0.7);text-align:right;margin-top:4px;min-height:16px}
- .bet-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px}
+ .payout-preview{font-size:12px;color:#8a7300;text-align:right;margin-top:4px;min-height:16px}
+ .bet-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-size:14px}
  .bet-item:last-child{border-bottom:none}
  .bet-status{padding:3px 10px;border-radius:50px;font-size:12px;font-weight:700}
- .status-pending{background:rgba(255,215,0,0.15);color:#FFD700}
- .status-won{background:rgba(45,106,79,0.3);color:#6fcf97}
- .status-lost{background:rgba(192,57,43,0.3);color:#ff7675}
- .lb-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)}
+ .status-pending{background:#fff3cd;color:#8a7300}
+ .status-won{background:#d8f3e3;color:#1e8a4c}
+ .status-lost{background:#fbdede;color:#c0392b}
+ .lb-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
  .lb-row:last-child{border-bottom:none}
- .lb-rank{font-family:'Bangers',cursive;font-size:20px;color:#FFD700;width:32px}
+ .lb-rank{font-family:'Bangers',cursive;font-size:20px;color:#1a1a2e;width:32px}
  .lb-name{flex:1;font-size:15px;font-weight:600}
- .lb-peels{font-family:'Bangers',cursive;font-size:18px;color:#FFD700}
- .lb-peels span{font-size:12px;font-weight:400;font-family:'DM Sans',sans-serif;color:rgba(255,215,0,0.6)}
+ .lb-peels{font-family:'Bangers',cursive;font-size:18px;color:#9a8200}
+ .lb-peels span{font-size:12px;font-weight:400;font-family:'DM Sans',sans-serif;color:#b0a060}
  .input-group{margin-bottom:12px}
- .input-group label{display:block;font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px}
- .input-group input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:9px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
+ .input-group label{display:block;font-size:13px;color:#6b6b78;margin-bottom:4px}
+ .input-group input{width:100%;background:#fff;border:1px solid #d8d8e2;color:#1a1a2e;padding:9px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px}
  .admin-btn{background:#FFD700;color:#1a1a2e;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;width:100%;margin-top:8px}
  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
- .stat-box{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);border-radius:12px;padding:12px;text-align:center}
- .stat-num{font-family:'Bangers',cursive;font-size:28px;color:#FFD700}
- .stat-lbl{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px}
- .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:100}
- .auth-box{background:#1a1a2e;border:2px solid #FFD700;border-radius:20px;padding:28px;width:340px;max-width:95vw}
- .auth-logo{font-family:'Bangers',cursive;font-size:36px;color:#FFD700;text-align:center;letter-spacing:3px;margin-bottom:4px}
- .auth-sub{text-align:center;color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:20px}
- .auth-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.4);color:#fff;padding:11px 14px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;margin-bottom:10px}
+ .stat-box{background:#fff8d6;border:1px solid #f0dd80;border-radius:12px;padding:12px;text-align:center}
+ .stat-num{font-family:'Bangers',cursive;font-size:28px;color:#9a8200}
+ .stat-lbl{font-size:12px;color:#6b6b78;margin-top:2px}
+ .overlay{position:fixed;inset:0;background:rgba(20,20,30,0.6);display:flex;align-items:center;justify-content:center;z-index:100}
+ .auth-box{background:#fff;border:2px solid #FFD700;border-radius:20px;padding:28px;width:340px;max-width:95vw;box-shadow:0 8px 30px rgba(0,0,0,0.15)}
+ .auth-logo{font-family:'Bangers',cursive;font-size:36px;color:#1a1a2e;text-align:center;letter-spacing:3px;margin-bottom:4px}
+ .auth-sub{text-align:center;color:#6b6b78;font-size:13px;margin-bottom:20px}
+ .auth-input{width:100%;background:#fff;border:1px solid #d8d8e2;color:#1a1a2e;padding:11px 14px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;margin-bottom:10px}
  .auth-btn{width:100%;background:#FFD700;color:#1a1a2e;border:none;padding:12px;border-radius:12px;font-weight:700;cursor:pointer;font-size:16px;font-family:'DM Sans',sans-serif;margin-bottom:8px}
- .auth-switch{text-align:center;font-size:13px;color:rgba(255,255,255,0.5)}
- .auth-switch a{color:#FFD700;cursor:pointer;text-decoration:underline}
- .auth-error{color:#ff7675;font-size:13px;text-align:center;margin-bottom:8px;min-height:18px}
- .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#FFD700;color:#1a1a2e;padding:10px 22px;border-radius:50px;font-weight:700;font-size:14px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+ .auth-switch{text-align:center;font-size:13px;color:#6b6b78}
+ .auth-switch a{color:#9a8200;cursor:pointer;text-decoration:underline}
+ .auth-error{color:#c0392b;font-size:13px;text-align:center;margin-bottom:8px;min-height:18px}
+ .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:#9a8200;padding:10px 22px;border-radius:50px;font-weight:700;font-size:14px;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,0.2)}
  .toast.show{opacity:1}
- .no-games{text-align:center;padding:32px;color:rgba(255,255,255,0.3);font-size:14px}
+ .no-games{text-align:center;padding:32px;color:#a0a0ae;font-size:14px}
  .result-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
- .result-btn{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#fff;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
- .result-btn:hover{background:rgba(255,255,255,0.1)}
- .admin-game-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);gap:10px;flex-wrap:wrap}
+ .result-btn{padding:8px;border-radius:8px;border:1px solid #d8d8e2;background:#fff;color:#1a1a2e;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+ .result-btn:hover{background:#f5f5f9}
+ .admin-game-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;gap:10px;flex-wrap:wrap}
  .admin-game-info{flex:1;font-size:14px}
  .admin-game-info strong{display:block;margin-bottom:2px}
- .admin-game-info small{color:rgba(255,255,255,0.4);font-size:12px}
- .closed-tag{font-size:11px;padding:2px 8px;border-radius:50px;background:rgba(192,57,43,0.3);color:#ff7675;margin-left:4px}
- .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:200}
- .modal-box{background:#1a1a2e;border:2px solid #FFD700;border-radius:16px;padding:24px;width:320px;max-width:95vw}
- .modal-box h3{color:#FFD700;margin-bottom:14px;font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px}
- .modal-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.4);color:#fff;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:10px}
+ .admin-game-info small{color:#9a9aa8;font-size:12px}
+ .closed-tag{font-size:11px;padding:2px 8px;border-radius:50px;background:#fbdede;color:#c0392b;margin-left:4px}
+ .modal-overlay{position:fixed;inset:0;background:rgba(20,20,30,0.55);display:flex;align-items:center;justify-content:center;z-index:200}
+ .modal-box{background:#fff;border:2px solid #FFD700;border-radius:16px;padding:24px;width:320px;max-width:95vw;box-shadow:0 8px 30px rgba(0,0,0,0.18)}
+ .modal-box h3{color:#1a1a2e;margin-bottom:14px;font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px}
+ .modal-input{width:100%;background:#fff;border:1px solid #d8d8e2;color:#1a1a2e;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:10px}
  .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
  .modal-confirm{background:#FFD700;color:#1a1a2e;border:none;padding:9px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
- .modal-cancel{background:transparent;color:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.2);padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
- .odds-preview{background:rgba(255,215,0,0.07);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between}
- .odds-preview span{color:#FFD700;font-weight:700}
+ .modal-cancel{background:#fff;color:#6b6b78;border:1px solid #d8d8e2;padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif}
+ .odds-preview{background:#fff8d6;border:1px solid #f0dd80;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between}
+ .odds-preview span{color:#9a8200;font-weight:700}
  .win-pct-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
- .win-pct-row input{flex:1;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:8px 10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px}
- .win-pct-row .calc-pill{background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.2);color:#FFD700;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;min-width:60px;text-align:center}
- .loading{text-align:center;padding:32px;color:rgba(255,215,0,0.5);font-size:14px}
- .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,215,0,0.3);border-top-color:#FFD700;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+ .win-pct-row input{flex:1;background:#fff;border:1px solid #d8d8e2;color:#1a1a2e;padding:8px 10px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px}
+ .win-pct-row .calc-pill{background:#fff8d6;border:1px solid #f0dd80;color:#9a8200;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:700;white-space:nowrap;min-width:60px;text-align:center}
+ .loading{text-align:center;padding:32px;color:#a08e00;font-size:14px}
+ .spinner{display:inline-block;width:20px;height:20px;border:2px solid #f0dd80;border-top-color:#e2c200;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
  @keyframes spin{to{transform:rotate(360deg)}}
- .config-warning{background:rgba(255,100,0,0.15);border:1px solid rgba(255,100,0,0.4);border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:#ffaa80;text-align:center}
- .player-card{background:rgba(255,255,255,0.04);border-radius:16px;padding:16px;text-align:center;position:relative;overflow:hidden;margin-bottom:10px}
- .player-card.common{border:2px solid rgba(200,200,200,0.4);background:linear-gradient(135deg,rgba(200,200,200,0.08),rgba(255,255,255,0.02))}
- .player-card.rare{border:2px solid rgba(59,130,246,0.6);background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(255,255,255,0.02))}
- .player-card.legendary{border:2px solid rgba(245,158,11,0.8);background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(255,100,0,0.1))}
- .player-card.mythic{border:2px solid rgba(232,121,249,0.9);background:linear-gradient(135deg,rgba(232,121,249,0.2),rgba(139,92,246,0.15));box-shadow:0 0 20px rgba(232,121,249,0.2)}
+ .config-warning{background:#fff0e6;border:1px solid #ffb88c;border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;color:#b85c1c;text-align:center}
+ .player-card{background:#fff;border-radius:16px;padding:16px;text-align:center;position:relative;overflow:hidden;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+ .player-card.common{border:2px solid #d6d6e0;background:linear-gradient(135deg,#fafafc,#fff)}
+ .player-card.rare{border:2px solid #93c5fd;background:linear-gradient(135deg,#eef5ff,#fff)}
+ .player-card.legendary{border:2px solid #f0c14b;background:linear-gradient(135deg,#fff6dd,#fff)}
+ .player-card.mythic{border:2px solid #e879f9;background:linear-gradient(135deg,#fbe8ff,#fff);box-shadow:0 0 16px rgba(232,121,249,0.25)}
  .card-rarity{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
- .rarity-common{color:#aaa}
- .rarity-rare{color:#60a5fa}
- .rarity-legendary{color:#FFD700}
- .rarity-mythic{color:#e879f9}
- .card-player{font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:4px}
- .card-team{font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px}
- .card-pts{font-family:'Bangers',cursive;font-size:32px;color:#FFD700}
- .card-pts-lbl{font-size:11px;color:rgba(255,255,255,0.4)}
+ .rarity-common{color:#8a8a96}
+ .rarity-rare{color:#3b82f6}
+ .rarity-legendary{color:#b8860b}
+ .rarity-mythic{color:#c026d3}
+ .card-player{font-family:'Bangers',cursive;font-size:22px;letter-spacing:1px;margin-bottom:4px;color:#1a1a2e}
+ .card-team{font-size:12px;color:#8a8a96;margin-bottom:8px}
+ .card-pts{font-family:'Bangers',cursive;font-size:32px;color:#9a8200}
+ .card-pts-lbl{font-size:11px;color:#a0a0ae}
  .card-mult{font-size:12px;margin-top:4px;font-weight:700}
- .pack-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,215,0,0.2);border-radius:16px;padding:16px;margin-bottom:10px}
+ .pack-card{background:#fff;border:1px solid #f0dd80;border-radius:16px;padding:16px;margin-bottom:10px}
  .pack-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
- .pack-name{font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px;color:#FFD700}
- .pack-price{font-family:'Bangers',cursive;font-size:18px;color:#FFD700}
- .pack-odds{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px}
+ .pack-name{font-family:'Bangers',cursive;font-size:20px;letter-spacing:1px;color:#1a1a2e}
+ .pack-price{font-family:'Bangers',cursive;font-size:18px;color:#9a8200}
+ .pack-odds{font-size:12px;color:#8a8a96;margin-bottom:10px}
  .pack-btn{background:#FFD700;color:#1a1a2e;border:none;padding:8px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;width:100%}
  .pack-btn:hover{opacity:0.9}
  .pack-btn:disabled{opacity:0.4;cursor:not-allowed}
- .starter-pack{border-color:rgba(16,185,129,0.5)!important;background:rgba(16,185,129,0.05)!important}
+ .starter-pack{border-color:#6ee7b7!important;background:#f0fdf6!important}
  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:16px}
- .card-reveal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:16px}
- .card-reveal-box{background:rgba(255,255,255,0.04);border-radius:20px;padding:28px;text-align:center;max-width:280px;animation:cardReveal .5s ease-out}
+ .card-reveal-overlay{position:fixed;inset:0;background:rgba(20,20,30,0.75);display:flex;align-items:center;justify-content:center;z-index:500;flex-direction:column;gap:16px}
+ .card-reveal-box{background:#fff;border-radius:20px;padding:28px;text-align:center;max-width:280px;animation:cardReveal .5s ease-out;box-shadow:0 10px 40px rgba(0,0,0,0.25)}
  @keyframes cardReveal{from{transform:scale(0.5) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
  .reveal-close{background:#FFD700;color:#1a1a2e;border:none;padding:10px 28px;border-radius:50px;font-weight:700;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif}
  .cards-grid-collection{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+ .matchup-card{background:#fff;border:1px solid #ececf2;border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;transition:box-shadow .15s,border-color .15s}
+ .matchup-card:hover{box-shadow:0 3px 10px rgba(0,0,0,0.08);border-color:#f0dd80}
+ .matchup-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+ .matchup-team{text-align:center}
+ .matchup-name{font-family:'Bangers',cursive;font-size:16px;color:#1a1a2e;letter-spacing:0.5px}
+ .matchup-score{font-family:'Bangers',cursive;font-size:30px;color:#1a1a2e;margin-top:2px}
+ .matchup-vs{font-family:'Bangers',cursive;font-size:14px;color:#b8b8c4}
+ .matchup-winner-badge{font-size:11px;color:#1e8a4c;font-weight:700;text-align:center;margin-top:6px}
+ .payout-summary-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3f3f6;font-size:13px}
+ .payout-summary-row:last-child{border-bottom:none}
+ .payout-pos{color:#1e8a4c;font-weight:700}
+ .payout-neg{color:#9a9aa8}
+ .stat-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f3f6;font-size:13px}
+ .stat-row:last-child{border-bottom:none}
+ .stat-label{color:#1a1a2e}
+ .stat-val{color:#6b6b78;font-weight:600}
 </style>
 </head>
 <body>
@@ -170,14 +186,14 @@
 <div id="page-feedback" class="page">
 <h2>Send Feedback</h2>
 <div class="card">
-<p style="color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:14px">Found a bug? Have an idea? Let me know — this goes straight to my inbox!</p>
+<p style="color:#6b6b78;font-size:14px;margin-bottom:14px">Found a bug? Have an idea? Let me know — this goes straight to my inbox!</p>
 <div class="input-group"><label>Your Feedback</label>
-<textarea id="feedback-text" rows="6" placeholder="Type your feedback, bug report, or suggestion here..." style="width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,215,0,0.3);color:#fff;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical"></textarea>
+<textarea id="feedback-text" rows="6" placeholder="Type your feedback, bug report, or suggestion here..." style="width:100%;background:#fff;border:1px solid #f0dd80;color:#1a1a2e;padding:10px 12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;resize:vertical"></textarea>
 </div>
 <div class="auth-error" id="feedback-error"></div>
 <button class="admin-btn" onclick="submitFeedback()" id="feedback-submit-btn">Send Feedback</button>
-<div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,215,0,0.1);font-size:13px;color:rgba(255,255,255,0.4)">
-Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD700;text-decoration:underline">peelspickem@gmail.com</a>
+<div style="text-align:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,215,0,0.1);font-size:13px;color:#8a8a96">
+Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8200;text-decoration:underline">peelspickem@gmail.com</a>
 </div>
 </div>
 </div>
@@ -185,19 +201,19 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <h2>Admin Panel</h2>
 <div class="card">
 <h3 style="color:#60a5fa;margin-bottom:12px">Import from Schedule</h3>
-<p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Pull upcoming matchups straight from the Banana Ball schedule.</p>
+<p style="font-size:12px;color:#8a8a96;margin-bottom:10px">Pull upcoming matchups straight from the Banana Ball schedule.</p>
 <div class="input-group"><label>Date</label><input id="schedule-date" type="date"/></div>
 <button class="admin-btn" onclick="findUpcomingGames()" style="background:#60a5fa">Find Scheduled Games</button>
 <div id="upcoming-games-list" style="margin-top:12px"></div>
 </div>
 <div class="card">
-<h3 style="color:#FFD700;margin-bottom:12px">Add New Game</h3>
+<h3 style="color:#9a8200;margin-bottom:12px">Add New Game</h3>
 <div class="grid2">
 <div class="input-group"><label>Team 1 Name</label><input id="a-t1" placeholder="Savannah Bananas" oninput="updateOddsPreview()"/></div>
 <div class="input-group"><label>Team 2 Name</label><input id="a-t2" placeholder="Party Animals" oninput="updateOddsPreview()"/></div>
 </div>
 <button class="admin-btn" onclick="calculateWinPct()" style="background:#60a5fa;margin-bottom:12px">Calculate Win % from Season Data</button>
-<div id="calc-status" style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px"></div>
+<div id="calc-status" style="font-size:12px;color:#8a8a96;margin-bottom:10px"></div>
 <div class="grid2">
 <div class="input-group">
 <label>Team 1 Win %</label>
@@ -218,18 +234,18 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 </div>
 <button class="admin-btn" onclick="addGame()">+ Add Game</button>
 </div>
-<div class="card" style="margin-top:12px"><h3 style="color:#FFD700;margin-bottom:12px">Resolve Games</h3><div id="admin-games-list"></div></div>
+<div class="card" style="margin-top:12px"><h3 style="color:#9a8200;margin-bottom:12px">Resolve Games</h3><div id="admin-games-list"></div></div>
 <div class="card" style="margin-top:12px">
 <details>
-<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ Manage Players</summary>
+<summary style="cursor:pointer;color:#9a8200;font-weight:700;font-size:15px;list-style:none">▸ Manage Players</summary>
 <div id="admin-players-list" style="margin-top:10px"></div>
 </details>
 </div>
 <div class="card" style="margin-top:12px">
 <details>
-<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ Bot Accounts</summary>
+<summary style="cursor:pointer;color:#9a8200;font-weight:700;font-size:15px;list-style:none">▸ Bot Accounts</summary>
 <div style="margin-top:10px">
-<p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Add fake names to the leaderboard to make the app feel more active.</p>
+<p style="font-size:12px;color:#8a8a96;margin-bottom:10px">Add fake names to the leaderboard to make the app feel more active.</p>
 <div class="grid2">
 <div class="input-group"><label>Bot Name</label><input id="bot-name" placeholder="e.g. Slugger99"/></div>
 <div class="input-group"><label>Peels</label><input id="bot-peels" type="number" placeholder="150" value="100"/></div>
@@ -240,13 +256,13 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 </details>
 </div>
 <div class="card" style="margin-top:12px">
-<h3 style="color:#FFD700;margin-bottom:12px">Card Packs</h3>
+<h3 style="color:#9a8200;margin-bottom:12px">Card Packs</h3>
 <button class="admin-btn" onclick="showCreatePack()" style="margin-bottom:10px">+ Create Pack</button>
 <div id="admin-packs-list"></div>
 </div>
 <div class="card" style="margin-top:12px">
 <details>
-<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ Player Cards</summary>
+<summary style="cursor:pointer;color:#9a8200;font-weight:700;font-size:15px;list-style:none">▸ Player Cards</summary>
 <div style="margin-top:10px">
 <button class="admin-btn" onclick="showCreateCard()" style="margin-bottom:10px">+ Create Player Card</button>
 <div id="admin-cards-list"></div>
@@ -255,20 +271,20 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 </div>
 <div class="card" style="margin-top:12px">
 <details>
-<summary style="cursor:pointer;color:#FFD700;font-weight:700;font-size:15px;list-style:none">▸ All Card Points (incl. unowned)</summary>
+<summary style="cursor:pointer;color:#9a8200;font-weight:700;font-size:15px;list-style:none">▸ All Card Points (incl. unowned)</summary>
 <div style="margin-top:10px">
-<p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Total points logged per card from synced games, whether or not anyone owns it yet.</p>
+<p style="font-size:12px;color:#8a8a96;margin-bottom:10px">Total points logged per card from synced games, whether or not anyone owns it yet.</p>
 <div id="admin-card-points-list"></div>
 </div>
 </details>
 </div>
 <div class="card" style="margin-top:12px">
-<h3 style="color:#FFD700;margin-bottom:12px">Enter Player Stats</h3>
+<h3 style="color:#9a8200;margin-bottom:12px">Enter Player Stats</h3>
 <button class="admin-btn" onclick="showPlayerStats()">Enter Stats & Pay Out</button>
 </div>
 <div class="card" style="margin-top:12px">
 <h3 style="color:#60a5fa;margin-bottom:12px">Game Stats Sync</h3>
-<p style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:10px">Find games for a date, then sync each one to calculate and pay out card holders automatically.</p>
+<p style="font-size:12px;color:#8a8a96;margin-bottom:10px">Find games for a date, then sync each one to calculate and pay out card holders automatically.</p>
 <div class="input-group"><label>Date</label><input id="sync-date" type="date"/></div>
 <button class="admin-btn" onclick="findGamesForDate()" style="background:#60a5fa">Find Games</button>
 <div id="games-found-list" style="margin-top:12px"></div>
@@ -288,7 +304,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <button class="auth-btn" onclick="authSubmit()" id="auth-main-btn">Sign In</button>
 <div class="auth-switch" id="auth-switch">No account?<a onclick="toggleAuth()">Sign up</a>— you get 100 free Peels</div>
 <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,215,0,0.15)">
-<button onclick="showAdminLogin()" style="background:transparent;border:1px solid rgba(255,215,0,0.3);color:rgba(255,215,0,0.6);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">Admin Login</button>
+<button onclick="showAdminLogin()" style="background:transparent;border:1px solid #f0dd80;color:#8a7300;padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif">Admin Login</button>
 </div>
 </div>
 </div>
@@ -307,7 +323,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="modal-overlay" id="resolve-modal" style="display:none">
 <div class="modal-box">
 <h3>Confirm Result</h3>
-<p id="resolve-body" style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:16px"></p>
+<p id="resolve-body" style="color:#3a3a48;font-size:14px;margin-bottom:16px"></p>
 <div class="modal-btns"><button class="modal-cancel" onclick="closeModal('resolve-modal')">Cancel</button><button class="modal-confirm" onclick="confirmResolve()">Confirm</button></div>
 </div>
 </div>
@@ -326,9 +342,9 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="modal-overlay" id="logout-modal" style="display:none">
 <div class="modal-box">
 <h3>Account</h3>
-<p style="color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:16px">Signed in as<strong id="logout-name" style="color:#FFD700"></strong>.</p>
+<p style="color:#5a5a68;font-size:14px;margin-bottom:16px">Signed in as<strong id="logout-name" style="color:#9a8200"></strong>.</p>
 <div id="logout-admin-btn" style="display:none;margin-bottom:10px">
-<button onclick="closeModal('logout-modal');showAdminLogin()" style="width:100%;background:transparent;border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;">Enter Admin Mode</button>
+<button onclick="closeModal('logout-modal');showAdminLogin()" style="width:100%;background:transparent;border:1px solid #f0dd80;color:#9a8200;padding:9px;border-radius:10px;cursor:pointer;font-size:14px;font-family:'DM Sans',sans-serif;">Enter Admin Mode</button>
 </div>
 <div class="modal-btns"><button class="modal-cancel" onclick="closeModal('logout-modal')">Stay</button><button class="modal-confirm" onclick="logout()">Sign Out</button></div>
 </div>
@@ -363,7 +379,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="input-group"><label>Game Date/Time</label><input id="edit-date" type="datetime-local"/></div>
 <div class="input-group"><label>Betting Locks At</label><input id="edit-lock" type="datetime-local"/></div>
 </div>
-<p style="font-size:12px;color:rgba(255,215,0,0.5);margin-bottom:12px">️ Existing bets keep their original odds — only new bets use updated odds.</p>
+<p style="font-size:12px;color:#a08e00;margin-bottom:12px">️ Existing bets keep their original odds — only new bets use updated odds.</p>
 <div class="auth-error" id="edit-game-error"></div>
 <div class="modal-btns">
 <button class="modal-cancel" onclick="closeModal('edit-game-modal')">Cancel</button>
@@ -374,7 +390,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 
 <!-- Card reveal overlay -->
 <div id="card-reveal-overlay" style="display:none" class="card-reveal-overlay">
-<div style="font-family:'Bangers',cursive;font-size:28px;color:#FFD700;letter-spacing:2px">You got...</div>
+<div style="font-family:'Bangers',cursive;font-size:28px;color:#9a8200;letter-spacing:2px">You got...</div>
 <div class="card-reveal-box" id="card-reveal-box"></div>
 <button class="reveal-close" onclick="closeReveal()">Sweet!</button>
 </div>
@@ -410,7 +426,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="input-group"><label>Rare % (e.g. 30)</label><input id="cp-rare" type="number" value="30" min="0" max="100"/></div>
 <div class="input-group"><label>Legendary % (e.g. 8)</label><input id="cp-legendary" type="number" value="8" min="0" max="100"/></div>
 <div class="input-group"><label>Mythic % (e.g. 2)</label><input id="cp-mythic" type="number" value="2" min="0" max="100"/></div>
-<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:8px">Note: percentages should add up to 100</div>
+<div style="font-size:12px;color:#8a8a96;margin-bottom:8px">Note: percentages should add up to 100</div>
 <div class="auth-error" id="cp-error"></div>
 <div class="modal-btns">
 <button class="modal-cancel" onclick="closeModal('create-pack-modal')">Cancel</button>
@@ -423,7 +439,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="modal-overlay" id="player-stats-modal" style="display:none">
 <div class="modal-box">
 <h3>Enter Player Stats</h3>
-<p style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:14px">All card holders of this player earn Peels automatically based on their card multiplier.</p>
+<p style="font-size:13px;color:#6b6b78;margin-bottom:14px">All card holders of this player earn Peels automatically based on their card multiplier.</p>
 <div class="input-group"><label>Select Player</label>
 <select id="ps-player-select"></select>
 </div>
@@ -441,7 +457,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="modal-overlay" id="starter-card-modal" style="display:none">
 <div class="modal-box">
 <h3>Pick Your Starter Card!</h3>
-<p style="color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:14px">Choose any player — you'll get them as a Common card to start your collection!</p>
+<p style="color:#6b6b78;font-size:13px;margin-bottom:14px">Choose any player — you'll get them as a Common card to start your collection!</p>
 <input class="search-box" id="starter-search" placeholder="Search players..." oninput="filterStarterPlayers()" style="margin-bottom:10px"/>
 <div class="team-list" id="starter-player-list" style="max-height:300px;overflow-y:auto"></div>
 <div class="auth-error" id="starter-error"></div>
@@ -536,12 +552,12 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  const el = document.getElementById('admin-bots-list');
  if (!el) return;
  const { data: bots } = await supabase.from('profiles').select('id, username, peels').eq('is_bot', true).order('username');
- if (!bots?.length) { el.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No bots yet</div>'; return; }
+ if (!bots?.length) { el.innerHTML ='<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No bots yet</div>'; return; }
  el.innerHTML = bots.map(b =>`
 <div class="admin-game-item">
-<div class="admin-game-info"><strong>${escapeHtml(b.username)}</strong><span style="color:rgba(255,255,255,0.4);font-size:12px">bot</span></div>
+<div class="admin-game-info"><strong>${escapeHtml(b.username)}</strong><span style="color:#8a8a96;font-size:12px">bot</span></div>
 <div style="display:flex;align-items:center;gap:8px">
-<span style="font-family:'Bangers',cursive;color:#FFD700;font-size:16px">${Math.round(b.peels)}</span>
+<span style="font-family:'Bangers',cursive;color:#9a8200;font-size:16px">${Math.round(b.peels)}</span>
 <button class="result-btn bot-adjust-btn" data-bot-id="${b.id}" data-bot-name="${escapeAttr(b.username)}" style="padding:5px 10px;font-size:12px">Adjust</button>
 <button class="result-btn bot-delete-btn" data-bot-id="${b.id}" style="padding:5px 10px;font-size:12px;color:#ff7675;border-color:rgba(255,118,117,0.4)">Remove</button>
 </div>
@@ -735,7 +751,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  ${isLocked
  ? `<div style="text-align:center;padding:10px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:10px;font-size:13px;color:#ff7675">Betting is locked — game in progress</div>`
  : userBet
- ? `<div style="text-align:center;padding:10px;background:rgba(255,215,0,0.1);border-radius:10px;font-size:13px;color:#FFD700">Bet on<strong>${userBet.pick}</strong>— ${userBet.wager} Peels → ${userBet.potential} if win</div>`
+ ? `<div style="text-align:center;padding:10px;background:rgba(255,215,0,0.1);border-radius:10px;font-size:13px;color:#9a8200">Bet on<strong>${userBet.pick}</strong>— ${userBet.wager} Peels → ${userBet.potential} if win</div>`
  : `<div class="pick-buttons">
 <button class="pick-btn" id="pb-${g.id}-1" onclick="selectPick('${g.id}','${g.t1}',${o1})">${g.t1}<span class="btn-payout">Win → ${o1}x payout</span></button>
 <button class="pick-btn" id="pb-${g.id}-2" onclick="selectPick('${g.id}','${g.t2}',${o2})">${g.t2}<span class="btn-payout">Win → ${o2}x payout</span></button>
@@ -807,7 +823,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="bet-item">
 <div>
 <div style="font-weight:600;font-size:14px">${b.games ? b.games.t1 +' vs' + b.games.t2 :'Game'}</div>
-<div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:2px">Pick: ${b.pick} (${b.odds}x) · ${b.wager} Peels → ${b.potential} if win</div>
+<div style="font-size:12px;color:#8a8a96;margin-top:2px">Pick: ${b.pick} (${b.odds}x) · ${b.wager} Peels → ${b.potential} if win</div>
 </div>
 <span class="bet-status status-${b.status}">${b.status}</span>
 </div>`).join('');
@@ -823,7 +839,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  el.innerHTML = players.map((u, i) =>`
 <div class="lb-row">
 <div class="lb-rank">${i + 1}</div>
-<div class="lb-name">${u.username}${currentProfile && u.username === currentProfile.username ?' <span style="font-size:11px;color:rgba(255,215,0,0.4)">(you)</span>' :''}</div>
+<div class="lb-name">${u.username}${currentProfile && u.username === currentProfile.username ?' <span style="font-size:11px;color:#b09a20">(you)</span>' :''}</div>
 <div class="lb-peels">${Math.round(u.peels)} <span>Peels</span></div>
 </div>`).join('');
  }
@@ -962,7 +978,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 </div>
 <button class="result-btn admin-edit-btn" style="color:#60a5fa;border-color:rgba(96,165,250,0.4);width:100%" data-game-id="${g.id}">️ Edit Game</button>
 </div>`
- : `<span style="font-size:12px;color:rgba(255,255,255,0.3)">Winner: ${escapeHtml(g.winner) ||'—'}</span>`}
+ : `<span style="font-size:12px;color:#a0a0ae">Winner: ${escapeHtml(g.winner) ||'—'}</span>`}
 </div>`).join('');
  }
 
@@ -990,7 +1006,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="admin-game-item">
 <div class="admin-game-info"><strong>${u.username}</strong></div>
 <div style="display:flex;align-items:center;gap:8px">
-<span style="font-family:'Bangers',cursive;color:#FFD700;font-size:16px">${Math.round(u.peels)}</span>
+<span style="font-family:'Bangers',cursive;color:#9a8200;font-size:16px">${Math.round(u.peels)}</span>
 <button class="result-btn" style="padding:5px 10px;font-size:12px" onclick="adjustPeels('${u.id}','${u.username}')">Adjust</button>
 </div>
 </div>`).join('');
@@ -1132,11 +1148,11 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  return `<div class="player-card ${rarity}">
 <div class="card-rarity rarity-${rarity}">${rarity} ${rarity==='mythic'?'':rarity==='legendary'?'⭐':rarity==='rare'?'':'·'}</div>
 <div class="card-player">${card.player_name}</div>
-<div class="card-team" style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap">${card.position?`<span style="background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.3);border-radius:50px;padding:2px 10px;font-size:11px;font-weight:700;color:#FFD700">${card.position==='Pitcher'?' Pitcher':' Batter'}</span>`:''}<span style="font-size:12px;color:rgba(255,255,255,0.5)">${card.team_name||''}</span></div>
+<div class="card-team" style="display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap">${card.position?`<span style="background:rgba(255,215,0,0.15);border:1px solid #f0dd80;border-radius:50px;padding:2px 10px;font-size:11px;font-weight:700;color:#9a8200">${card.position==='Pitcher'?' Pitcher':' Batter'}</span>`:''}<span style="font-size:12px;color:#6b6b78">${card.team_name||''}</span></div>
 <div class="card-pts">${pts}</div>
 <div class="card-pts-lbl">Peels earned</div>
  ${showMult?`<div class="card-mult" style="color:${RARITY_COLOR[rarity]}">${mult}x multiplier</div>`:''}
- ${showSell&&userCardId&&rarity!=='mythic'?`<button onclick="upgradeCard('${userCardId}','${card.player_name}','${rarity}')" style="margin-top:6px;width:100%;background:rgba(255,215,0,0.15);border:1px solid rgba(255,215,0,0.4);color:#FFD700;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">⬆ Upgrade to ${RARITY_NEXT[rarity]||''} — ${UPGRADE_COST[rarity]||0}</button>`:''}
+ ${showSell&&userCardId&&rarity!=='mythic'?`<button onclick="upgradeCard('${userCardId}','${card.player_name}','${rarity}')" style="margin-top:6px;width:100%;background:rgba(255,215,0,0.15);border:1px solid #f0dd80;color:#9a8200;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">⬆ Upgrade to ${RARITY_NEXT[rarity]||''} — ${UPGRADE_COST[rarity]||0}</button>`:''}
  ${showSell&&userCardId?`<button onclick="sellCard('${userCardId}','${card.player_name}',${sellPrice})" style="margin-top:4px;width:100%;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;padding:6px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">Sell for ${sellPrice}</button>`:''}
 </div>`;
  }
@@ -1175,7 +1191,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  <div class="matchup-score">${g.home_team.points ?? '—'}</div>
  </div>
  </div>
- <div style="text-align:center;font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px">${g.status==='final'?'Final':g.status} · Tap for box score</div>
+ <div style="text-align:center;font-size:12px;color:#8a8a96;margin-top:8px">${g.status==='final'?'Final':g.status} · Tap for box score</div>
  </div>`).join('');
  } catch(e) {
  listEl.innerHTML = `<div class="no-games">Error loading games: ${e.message}</div>`;
@@ -1191,30 +1207,50 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/directus-items/box-score?gameId=${gameId}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const game = await res.json();
 
+ // Pull card payouts logged for this specific game, joined to player names
+ const { data: payoutLogs } = await supabase.from('card_stat_logs')
+ .select('base_peels, notes, player_cards(player_name, position)')
+ .eq('game_id', gameId)
+ .order('base_peels', { ascending: false });
+
  const teamBlock = (team) => {
  const battersRows = (team.batters||[]).filter((b) => b.AB > 0 || b.R > 0 || b.H > 0).map((b) => `
  <div class="stat-row"><span class="stat-label">${escapeHtml(b.name)}</span><span class="stat-val">${b.H}-${b.AB}, ${b.RBI} RBI${b.K?', '+b.K+' K':''}</span></div>`).join('');
  const pitcherRows = (team.pitchers||[]).map((p) => `
  <div class="stat-row"><span class="stat-label">${escapeHtml(p.name)}</span><span class="stat-val">${p.IP} IP, ${p.ER} ER, ${p.K} K</span></div>`).join('');
  return `<div class="card" style="margin-bottom:10px">
- <h3 style="color:#FFD700">${escapeHtml(team.teamName)} — ${team.prh.points_total} pts (${team.prh.runs} runs, ${team.prh.hits} hits)</h3>
- <div style="font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:6px">Batting</div>
- ${battersRows||'<div style="font-size:13px;color:rgba(255,255,255,0.3)">No batting data</div>'}
- <div style="font-size:12px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin:10px 0 6px">Pitching</div>
- ${pitcherRows||'<div style="font-size:13px;color:rgba(255,255,255,0.3)">No pitching data</div>'}
+ <h3 style="color:#1a1a2e">${escapeHtml(team.teamName)} — ${team.prh.points_total} pts (${team.prh.runs} runs, ${team.prh.hits} hits)</h3>
+ <div style="font-size:12px;color:#8a8a96;text-transform:uppercase;margin-bottom:6px">Batting</div>
+ ${battersRows||'<div style="font-size:13px;color:#b0b0bc">No batting data</div>'}
+ <div style="font-size:12px;color:#8a8a96;text-transform:uppercase;margin:10px 0 6px">Pitching</div>
+ ${pitcherRows||'<div style="font-size:13px;color:#b0b0bc">No pitching data</div>'}
  </div>`;
  };
 
+ const payoutSection = payoutLogs?.length ? `
+ <div class="card" style="margin-bottom:10px">
+ <h3 style="color:#1a1a2e;margin-bottom:8px">Card Payouts</h3>
+ ${payoutLogs.map(p => `
+ <div class="payout-summary-row">
+ <span>${escapeHtml(p.player_cards?.player_name||'Unknown')}${p.player_cards?.position?' <span style="color:#a0a0ae;font-size:11px">('+p.player_cards.position+')</span>':''}</span>
+ <span class="${p.base_peels >= 0 ?'payout-pos':'payout-neg'}">${p.base_peels>=0?'+':''}${p.base_peels.toFixed(1)} pts</span>
+ </div>`).join('')}
+ </div>` : `
+ <div class="card" style="margin-bottom:10px;text-align:center">
+ <span style="color:#a0a0ae;font-size:13px">No card payouts synced for this game yet.</span>
+ </div>`;
+
  detailEl.innerHTML = `
- <button class="btn-blue" style="margin-bottom:12px" onclick="renderBBGamesPage()">← Back to Games</button>
+ <button class="result-btn" style="margin-bottom:12px;color:#1a1a2e" onclick="renderBBGamesPage()">← Back to Games</button>
  <div class="card" style="text-align:center;margin-bottom:12px">
- <div style="font-size:12px;color:rgba(255,255,255,0.4)">${game.venue?.name||''} · ${game.gameDate}</div>
+ <div style="font-size:12px;color:#8a8a96">${game.venue?.name||''} · ${game.gameDate}</div>
  </div>
  ${game.teams.map(teamBlock).join('')}
- ${game.notes?`<div class="card" style="font-size:13px;color:rgba(255,255,255,0.6);white-space:pre-wrap">${escapeHtml(game.notes)}</div>`:''}
+ ${payoutSection}
+ ${game.notes?`<div class="card" style="font-size:13px;color:#6b6b78;white-space:pre-wrap">${escapeHtml(game.notes)}</div>`:''}
  `;
  } catch(e) {
- detailEl.innerHTML = `<div class="no-games">Error loading box score: ${e.message}</div><button class="btn-blue" onclick="renderBBGamesPage()">← Back</button>`;
+ detailEl.innerHTML = `<div class="no-games">Error loading box score: ${e.message}</div><button class="result-btn" onclick="renderBBGamesPage()">← Back</button>`;
  }
  }
 
@@ -1237,7 +1273,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  myEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
  const { data: myCards } = await supabase.from('user_cards').select('*, player_cards(*)').eq('user_id', currentUser.id).order('created_at', {ascending: false});
  if (!myCards?.length) {
- myEl.innerHTML = `<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">
+ myEl.innerHTML = `<div class="card" style="text-align:center;padding:24px;color:#8a8a96">
  No cards yet!<br/><br/>
 <button class="btn-gold" style="background:#FFD700;color:#1a1a2e;border:none;padding:10px 20px;border-radius:10px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif" onclick="showStarterCardPicker(currentUser.id)">Claim Your Free Starter Card</button>
 </div>`;
@@ -1249,7 +1285,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  const packsEl = document.getElementById('packs-list');
  const { data: packs } = await supabase.from('card_packs').select('*').order('price');
  if (!packs?.length) {
- packsEl.innerHTML ='<div class="card" style="text-align:center;padding:24px;color:rgba(255,255,255,0.4)">No packs available yet.</div>';
+ packsEl.innerHTML ='<div class="card" style="text-align:center;padding:24px;color:#8a8a96">No packs available yet.</div>';
  } else {
  packsEl.innerHTML = packs.map(p =>`
 <div class="pack-card ${p.is_starter?'starter-pack':''}">
@@ -1260,7 +1296,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div class="pack-odds">
 <span style="color:#aaa">Common ${p.common_pct}%</span>·
 <span style="color:#60a5fa">Rare ${p.rare_pct}%</span>·
-<span style="color:#FFD700">Legendary ${p.legendary_pct}%</span>·
+<span style="color:#9a8200">Legendary ${p.legendary_pct}%</span>·
 <span style="color:#e879f9">Mythic ${p.mythic_pct||0}%</span>
 </div>
 <button class="pack-btn" onclick="buyPack('${p.id}','${p.name}',${p.price},${p.common_pct},${p.rare_pct},${p.legendary_pct},${p.mythic_pct||0})">
@@ -1364,12 +1400,12 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  async function findUpcomingGames() {
  const date = document.getElementById('schedule-date').value;
  const listEl = document.getElementById('upcoming-games-list');
- if (!date) { listEl.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.4)">Pick a date first.</div>'; return; }
+ if (!date) { listEl.innerHTML ='<div style="font-size:13px;color:#8a8a96">Pick a date first.</div>'; return; }
  listEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading schedule...</div>';
  try {
  const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${date}&dateTo=${date}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const games = await res.json();
- if (!games?.length) { listEl.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.4)">No games found for that date.</div>'; return; }
+ if (!games?.length) { listEl.innerHTML ='<div style="font-size:13px;color:#8a8a96">No games found for that date.</div>'; return; }
  listEl.innerHTML = games.map((g, i) => {
  const isScheduled = g.status ==='scheduled';
  const dt = `${g.date}T${g.time}`;
@@ -1378,7 +1414,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  <strong>${escapeHtml(g.away_team.name)} @ ${escapeHtml(g.home_team.name)}</strong>
  <small>${g.time} ·${g.status}${!isScheduled?' (already played)':''}</small>
  </div>
- ${isScheduled ? `<button class="result-btn" style="color:#60a5fa;border-color:rgba(96,165,250,0.4)" onclick='importGame(${JSON.stringify(g.away_team.name)}, ${JSON.stringify(g.home_team.name)}, ${JSON.stringify(dt)})'>Import</button>` :'<span style="font-size:12px;color:rgba(255,255,255,0.3)">Already played</span>'}
+ ${isScheduled ? `<button class="result-btn" style="color:#60a5fa;border-color:rgba(96,165,250,0.4)" onclick='importGame(${JSON.stringify(g.away_team.name)}, ${JSON.stringify(g.home_team.name)}, ${JSON.stringify(dt)})'>Import</button>` :'<span style="font-size:12px;color:#a0a0ae">Already played</span>'}
  </div>`;
  }).join('');
  } catch(e) {
@@ -1407,7 +1443,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  try {
  const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${gameDate}&dateTo=${gameDate}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const games = await res.json();
- if (!games?.length) { listEl.innerHTML ='<p style="color:rgba(255,255,255,0.4);font-size:13px">No games found for this date.</p>'; return; }
+ if (!games?.length) { listEl.innerHTML ='<p style="color:#8a8a96;font-size:13px">No games found for this date.</p>'; return; }
 
  // Check which games are already synced (any card_stat_log with this game_id)
  const gameIds = games.map((g) => g.id);
@@ -1532,8 +1568,8 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  packsEl.innerHTML = (packs||[]).length ? packs.map(p =>`
 <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;display:flex;justify-content:space-between">
 <span>${p.name}</span>
-<span style="color:rgba(255,215,0,0.7)">${p.price} · C${p.common_pct}%/R${p.rare_pct}%/L${p.legendary_pct}%/M${p.mythic_pct||0}%</span>
-</div>`).join('') :'<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No packs yet</div>';
+<span style="color:#9a8200">${p.price} · C${p.common_pct}%/R${p.rare_pct}%/L${p.legendary_pct}%/M${p.mythic_pct||0}%</span>
+</div>`).join('') :'<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No packs yet</div>';
  }
  // Cards
  const cardsEl = document.getElementById('admin-cards-list');
@@ -1542,8 +1578,8 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  cardsEl.innerHTML = (cards||[]).length ? cards.map(c =>`
 <div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;display:flex;justify-content:space-between">
 <span>${c.player_name}<span style="color:${RARITY_COLOR[c.rarity]}">(${c.rarity})</span></span>
-<span style="color:rgba(255,255,255,0.4)">${c.card_packs?.name||'No pack'}</span>
-</div>`).join('') :'<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No cards yet</div>';
+<span style="color:#8a8a96">${c.card_packs?.name||'No pack'}</span>
+</div>`).join('') :'<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No cards yet</div>';
  }
  // All card points (incl. unowned)
  renderAdminCardPoints();
@@ -1558,7 +1594,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
  const { data: cards } = await supabase.from('player_cards').select('id, player_name, team_name, position');
  const { data: userCards } = await supabase.from('user_cards').select('card_id');
 
- if (!cards?.length) { el.innerHTML ='<div style="font-size:13px;color:rgba(255,255,255,0.3);padding:8px 0">No cards yet</div>'; return; }
+ if (!cards?.length) { el.innerHTML ='<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No cards yet</div>'; return; }
 
  const ownedCounts = {};
  for (const uc of (userCards||[])) ownedCounts[uc.card_id] = (ownedCounts[uc.card_id]||0) + 1;
@@ -1581,12 +1617,12 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#FFD
 <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">
 <div>
 <strong>${escapeHtml(r.player_name)}</strong>
-<span style="color:rgba(255,255,255,0.4)"> ${r.position?'('+r.position+')':''} · ${escapeHtml(r.team_name||'')}</span>
+<span style="color:#8a8a96"> ${r.position?'('+r.position+')':''} · ${escapeHtml(r.team_name||'')}</span>
 ${r.owners===0?'<span style="color:#ff7675;font-size:11px;margin-left:6px">unowned</span>':`<span style="color:#6fcf97;font-size:11px;margin-left:6px">${r.owners} owner${r.owners>1?'s':''}</span>`}
 </div>
 <div style="text-align:right">
-<div style="color:#FFD700;font-weight:700">${r.totalPts.toFixed(1)} pts</div>
-<div style="color:rgba(255,255,255,0.3);font-size:11px">${r.gamesLogged} game${r.gamesLogged!==1?'s':''} logged</div>
+<div style="color:#9a8200;font-weight:700">${r.totalPts.toFixed(1)} pts</div>
+<div style="color:#a0a0ae;font-size:11px">${r.gamesLogged} game${r.gamesLogged!==1?'s':''} logged</div>
 </div>
 </div>`).join('');
  }
@@ -1599,19 +1635,19 @@ ${r.owners===0?'<span style="color:#ff7675;font-size:11px;margin-left:6px">unown
  const lines = earnings.map(e =>`
 <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">
 <span style="color:rgba(255,255,255,0.8)">${e.player_cards?.player_name||'Player'} ${e.notes?'·'+e.notes:''}</span>
-<span style="color:#FFD700;font-weight:700">+${e.payout}</span>
+<span style="color:#9a8200;font-weight:700">+${e.payout}</span>
 </div>`).join('');
  const popup = document.createElement('div');
  popup.id ='earnings-popup';
  popup.style.cssText ='position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:400';
  popup.innerHTML = `
 <div style="background:#1e293b;border:2px solid #FFD700;border-radius:20px;padding:24px;width:340px;max-width:95vw;max-height:80vh;overflow-y:auto">
-<div style="font-family:'Bangers',cursive;font-size:26px;color:#FFD700;letter-spacing:2px;text-align:center;margin-bottom:4px">🃏 Card Earnings!</div>
-<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:16px">Your cards earned Peels while you were away</div>
+<div style="font-family:'Bangers',cursive;font-size:26px;color:#9a8200;letter-spacing:2px;text-align:center;margin-bottom:4px">🃏 Card Earnings!</div>
+<div style="text-align:center;font-size:13px;color:#6b6b78;margin-bottom:16px">Your cards earned Peels while you were away</div>
  ${lines}
 <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:15px">
 <span>Total earned</span>
-<span style="color:#FFD700;font-family:'Bangers',cursive;font-size:20px">+${total}</span>
+<span style="color:#9a8200;font-family:'Bangers',cursive;font-size:20px">+${total}</span>
 </div>
 <button onclick="document.getElementById('earnings-popup').remove()" style="margin-top:14px;width:100%;background:#FFD700;color:#1a1a2e;border:none;padding:11px;border-radius:12px;font-weight:700;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif">Sweet!</button>
 </div>`;
