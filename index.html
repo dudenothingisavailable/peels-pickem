@@ -145,38 +145,48 @@
  .stat-row:last-child{border-bottom:none}
  .stat-label{color:#1a1a2e}
  .stat-val{color:#6b6b78;font-weight:600}
+ .bottom-tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ececf2;display:flex;justify-content:center;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom));z-index:90;box-shadow:0 -2px 10px rgba(0,0,0,0.05)}
+ .bottom-tab{flex:1;max-width:140px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:#9a9aa8;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;padding:6px 8px;border-radius:10px}
+ .bottom-tab.active{color:#9a8200;background:#fff8d6}
+ .bottom-tab-icon{font-size:20px;line-height:1}
+ .dropdown-wrap{position:relative}
+ .dropdown-toggle{background:#1a1a2e;color:#FFD700;border:none;padding:8px 14px;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+ .dropdown-menu{display:none;position:absolute;top:calc(100% + 8px);right:0;background:#fff;border:1px solid #ececf2;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.12);min-width:160px;z-index:120;overflow:hidden}
+ .dropdown-menu.open{display:block}
+ .dropdown-menu button{display:block;width:100%;text-align:left;padding:11px 16px;background:#fff;border:none;border-bottom:1px solid #f3f3f6;color:#1a1a2e;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+ .dropdown-menu button:last-child{border-bottom:none}
+ .dropdown-menu button:hover{background:#f7f8fb}
+ .game-tabs{display:flex;gap:6px;margin-bottom:14px;border-bottom:2px solid #ececf2}
+ .game-tab-btn{flex:1;padding:10px;background:none;border:none;border-bottom:3px solid transparent;color:#9a9aa8;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;margin-bottom:-2px}
+ .game-tab-btn.active{color:#1a1a2e;border-bottom-color:#FFD700}
+ .team-record{font-size:11px;color:#9a9aa8;margin-top:2px}
+ .clickable-stat-row{cursor:pointer;transition:background .15s}
+ .clickable-stat-row:hover{background:#fafafc}
 </style>
 </head>
 <body>
 <div class="app">
 <div class="header">
 <div class="logo">PEELS <span>PICK'EM</span></div>
+<div style="display:flex;align-items:center;gap:8px">
+<div class="dropdown-wrap">
+<button class="dropdown-toggle" onclick="toggleTopMenu()">Menu ▾</button>
+<div id="top-menu" class="dropdown-menu">
+<button onclick="showPage('mybets',null);closeTopMenu()">My Bets</button>
+<button onclick="showPage('leaderboard',null);closeTopMenu()">Leaderboard</button>
+<button onclick="showPage('feedback',null);closeTopMenu()">Feedback</button>
+</div>
+</div>
 <div class="user-pill" onclick="showLogout()">
 <span id="header-name">Guest</span>
 <span class="peels-badge" id="header-peels">0</span>
 </div>
 </div>
-<div class="nav">
-<button class="nav-btn active" id="nav-games" onclick="showPage('games',this)">Games</button>
-<button class="nav-btn" id="nav-mybets" onclick="showPage('mybets',this)">My Bets</button>
-<button class="nav-btn" id="nav-leaderboard" onclick="showPage('leaderboard',this)">Board</button>
-<button class="nav-btn" id="nav-bbgames" onclick="showPage('bbgames',this)">Games</button>
-<button class="nav-btn" id="nav-cards" onclick="showPage('cards',this)">🃏 Cards</button>
-<button class="nav-btn" id="nav-feedback" onclick="showPage('feedback',this)">Feedback</button>
-<button class="nav-btn" id="nav-admin" style="display:none" onclick="showPage('admin',this)">Admin</button>
 </div>
 
-<div id="page-games" class="page active"><h2>Active Games</h2><div id="games-list"><div class="loading"><span class="spinner"></span>Loading games...</div></div></div>
+<div id="page-games" class="page active"></div>
 <div id="page-mybets" class="page"><h2>My Bets</h2><div id="my-bets-stats" class="grid2" style="margin-bottom:14px"></div><div class="card" id="my-bets-list"></div></div>
 <div id="page-leaderboard" class="page"><h2>Leaderboard</h2><div class="card" id="lb-list"><div class="loading"><span class="spinner"></span>Loading...</div></div></div>
-<div id="page-bbgames" class="page">
-<h2>Banana Ball Games</h2>
-<div class="card">
-<div class="input-group"><label>Date</label><input id="bbgames-date" type="date" onchange="loadBBGames()"/></div>
-</div>
-<div id="bbgames-list"></div>
-<div id="boxscore-detail" style="display:none"></div>
-</div>
 <div id="page-cards" class="page">
 <h2>My Cards</h2>
 <div id="my-cards-list"></div>
@@ -234,7 +244,12 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 </div>
 <button class="admin-btn" onclick="addGame()">+ Add Game</button>
 </div>
-<div class="card" style="margin-top:12px"><h3 style="color:#9a8200;margin-bottom:12px">Resolve Games</h3><div id="admin-games-list"></div></div>
+<div class="card" style="margin-top:12px">
+<details>
+<summary style="cursor:pointer;color:#9a8200;font-weight:700;font-size:15px;list-style:none">▸ Resolve Games</summary>
+<div id="admin-games-list" style="margin-top:10px"></div>
+</details>
+</div>
 <div class="card" style="margin-top:12px">
 <details>
 <summary style="cursor:pointer;color:#9a8200;font-weight:700;font-size:15px;list-style:none">▸ Manage Players</summary>
@@ -290,6 +305,20 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 <div id="games-found-list" style="margin-top:12px"></div>
 </div>
 </div>
+
+<div style="height:70px"></div>
+</div>
+<div class="bottom-tabs">
+<button class="bottom-tab active" id="tab-games" onclick="showPage('games',null)">
+<span class="bottom-tab-icon">⚾</span><span>Games</span>
+</button>
+<button class="bottom-tab" id="tab-cards" onclick="showPage('cards',null)">
+<span class="bottom-tab-icon">▣</span><span>Cards</span>
+</button>
+<button class="bottom-tab" id="tab-admin" style="display:none" onclick="showPage('admin',null)">
+<span class="bottom-tab-icon">⚙</span><span>Admin</span>
+</button>
+</div>
 </div>
 
 <!-- Auth overlay -->
@@ -308,6 +337,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 </div>
 </div>
 </div>
+
 
 <!-- Admin login modal -->
 <div class="modal-overlay" id="admin-modal" style="display:none">
@@ -398,7 +428,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 <!-- Admin: Create Player Card modal -->
 <div class="modal-overlay" id="create-card-modal" style="display:none">
 <div class="modal-box">
-<h3>🃏 Create Player Card</h3>
+<h3>Create Player Card</h3>
 <div class="input-group"><label>Player Name</label><input id="cc-player" placeholder="e.g. Billy the Kid"/></div>
 <div class="input-group"><label>Team / Description</label><input id="cc-team" placeholder="e.g. Savannah Bananas"/></div>
 <div class="input-group"><label>Position</label>
@@ -603,11 +633,26 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 
  function showPage(p, btn) {
  document.querySelectorAll('.page').forEach(x =>x.classList.remove('active'));
- document.querySelectorAll('.nav-btn').forEach(x =>x.classList.remove('active'));
+ document.querySelectorAll('.bottom-tab').forEach(x =>x.classList.remove('active'));
  document.getElementById('page-' + p).classList.add('active');
- if (btn) btn.classList.add('active');
- ({ games: renderGames, mybets: renderMyBets, leaderboard: renderLeaderboard, admin: renderAdmin, cards: renderCardsPage, bbgames: renderBBGamesPage })[p]?.();
+ const tabId ='tab-' + (p ==='games' ?'games' : p ==='cards' ?'cards' : p ==='admin' ?'admin' : null);
+ const tabEl = document.getElementById(tabId);
+ if (tabEl) tabEl.classList.add('active');
+ ({ games: renderUnifiedGamesPage, mybets: renderMyBets, leaderboard: renderLeaderboard, admin: renderAdmin, cards: renderCardsPage })[p]?.();
+ closeTopMenu();
  }
+
+ function toggleTopMenu() {
+ document.getElementById('top-menu').classList.toggle('open');
+ }
+ function closeTopMenu() {
+ document.getElementById('top-menu').classList.remove('open');
+ }
+ document.addEventListener('click', function(e) {
+ const menu = document.getElementById('top-menu');
+ const toggle = e.target.closest('.dropdown-toggle');
+ if (!toggle && menu && !menu.contains(e.target)) menu.classList.remove('open');
+ });
 
  // ─── Auth ─────────────────────────────────────────────────
  function toggleAuth() {
@@ -638,7 +683,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  await supabase.from('profiles').insert({ id: data.user.id, username, peels: 100, is_admin: false });
  // Show starter card picker after login
  setTimeout(() =>showStarterCardPicker(data.user.id), 800);
- toast('Welcome! You have 100 Peels! Pick your free starter card 🃏');
+ toast('Welcome! You have 100 Peels! Pick your free starter card');
  } else {
  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
  if (error) { setError('auth-error','Incorrect email or password.'); btn.textContent ='Sign In'; btn.disabled = false; return; }
@@ -665,7 +710,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  // Mark current profile as admin session (just sets a flag in memory)
  if (currentProfile) {
  currentProfile.is_admin = true;
- document.getElementById('nav-admin').style.display ='';
+ document.getElementById('tab-admin').style.display ='';
  toast('Admin mode activated');
  renderAdmin();
  } else {
@@ -688,7 +733,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  document.getElementById('auth-overlay').style.display ='none';
  document.getElementById('header-name').textContent = profile.username;
  document.getElementById('header-peels').textContent = Math.round(profile.peels) +'';
- document.getElementById('nav-admin').style.display = profile.is_admin ?'' :'none';
+ document.getElementById('tab-admin').style.display = profile.is_admin ?'' :'none';
  }
 
  function showLogout() {
@@ -707,12 +752,12 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  document.getElementById('auth-overlay').style.display ='flex';
  document.getElementById('header-name').textContent ='Guest';
  document.getElementById('header-peels').textContent ='0';
- document.getElementById('nav-admin').style.display ='none';
+ document.getElementById('tab-admin').style.display ='none';
  document.querySelectorAll('.page').forEach(x =>x.classList.remove('active'));
- document.querySelectorAll('.nav-btn').forEach(x =>x.classList.remove('active'));
+ document.querySelectorAll('.bottom-tab').forEach(x =>x.classList.remove('active'));
  document.getElementById('page-games').classList.add('active');
- document.getElementById('nav-games').classList.add('active');
- renderGames();
+ document.getElementById('tab-games').classList.add('active');
+ renderUnifiedGamesPage();
  }
 
  async function refreshHeader() {
@@ -725,44 +770,169 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  }
 
  // ─── Games page ───────────────────────────────────────────
- async function renderGames() {
- const el = document.getElementById('games-list');
- el.innerHTML ='<div class="loading"><span class="spinner"></span>Loading games...</div>';
- const { data: games } = await supabase.from('games').select('*').eq('status','open').order('created_at', { ascending: false });
- if (!games || !games.length) { el.innerHTML ='<div class="no-games">No active games right now.<br>Check back soon!</div>'; return; }
+ // ─── Unified Games Page ─────────────────────────────────────
+ let currentGameDetail = null;
+ let leagueRecordsCache = null;
 
- let userBets = [];
- if (currentUser) {
- const { data } = await supabase.from('bets').select('*').eq('user_id', currentUser.id).eq('status','pending');
- userBets = data || [];
+ async function fetchLeagueRecords() {
+ if (leagueRecordsCache) return leagueRecordsCache;
+ try {
+ const url = `https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=2026-01-01&dateTo=2026-12-31`;
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(url), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
+ const games = await res.json();
+ leagueRecordsCache = (games||[]).filter(g => g.status ==='final' && g.home_team?.points!=null && g.away_team?.points!=null);
+ } catch(e) {
+ leagueRecordsCache = [];
+ }
+ return leagueRecordsCache;
  }
 
- el.innerHTML = games.map(g =>{
- const userBet = userBets.find(b =>b.game_id === g.id);
+ function teamRecord(finals, teamName) {
+ let wins = 0, losses = 0;
+ for (const g of finals) {
+ const home = g.home_team.name, away = g.away_team.name;
+ if (home !== teamName && away !== teamName) continue;
+ const isHome = home === teamName;
+ const myPts = isHome ? g.home_team.points : g.away_team.points;
+ const oppPts = isHome ? g.away_team.points : g.home_team.points;
+ if (myPts >oppPts) wins++; else losses++;
+ }
+ return { wins, losses };
+ }
+
+ async function renderUnifiedGamesPage() {
+ const el = document.getElementById('page-games');
+ el.innerHTML ='<h2>Games</h2><div id="games-list-unified"><div class="loading"><span class="spinner"></span>Loading games...</div></div>';
+ const listEl = document.getElementById('games-list-unified');
+
+ const { data: games } = await supabase.from('games').select('*').order('created_at', { ascending: false });
+ if (!games || !games.length) { listEl.innerHTML ='<div class="no-games">No games right now.<br>Check back soon!</div>'; return; }
+
+ const finals = await fetchLeagueRecords();
+
+ listEl.innerHTML = games.map(g => {
+ const r1 = teamRecord(finals, g.t1);
+ const r2 = teamRecord(finals, g.t2);
+ const isClosed = g.status ==='closed';
+ return `<div class="matchup-card" onclick="openGameDetail('${g.id}')">
+ <div class="matchup-teams">
+ <div class="matchup-team">
+ <div class="matchup-name">${escapeHtml(g.t1)}</div>
+ <div class="team-record">${r1.wins}-${r1.losses}</div>
+ <div class="team-odds-pill">${g.wp1}% win</div>
+ </div>
+ <div class="matchup-vs">vs</div>
+ <div class="matchup-team">
+ <div class="matchup-name">${escapeHtml(g.t2)}</div>
+ <div class="team-record">${r2.wins}-${r2.losses}</div>
+ <div class="team-odds-pill">${g.wp2}% win</div>
+ </div>
+ </div>
+ ${g.game_date ?`<div class="game-date">${new Date(g.game_date).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:''}
+ ${isClosed?`<div style="text-align:center;font-size:12px;color:#1e8a4c;font-weight:700;margin-top:4px">Final — ${escapeHtml(g.winner||'')} won</div>`:''}
+ </div>`;
+ }).join('');
+ }
+
+ async function openGameDetail(gameId) {
+ const { data: game } = await supabase.from('games').select('*').eq('id', gameId).single();
+ if (!game) { toast('Game not found'); return; }
+ currentGameDetail = game;
+ const el = document.getElementById('page-games');
+ el.innerHTML = `
+ <button class="result-btn" style="margin-bottom:12px" onclick="renderUnifiedGamesPage()">← Back to Games</button>
+ <div class="card" style="text-align:center;margin-bottom:12px">
+ <h2 style="margin-bottom:4px">${escapeHtml(game.t1)} vs ${escapeHtml(game.t2)}</h2>
+ ${game.game_date?`<div style="font-size:12px;color:#8a8a96">${new Date(game.game_date).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>`:''}
+ </div>
+ <div class="game-tabs">
+ <button class="game-tab-btn active" id="gtab-predictions" onclick="switchGameTab('predictions')">Predictions</button>
+ <button class="game-tab-btn" id="gtab-boxscore" onclick="switchGameTab('boxscore')">Box Score</button>
+ </div>
+ <div id="game-tab-content"></div>
+ `;
+ switchGameTab('predictions');
+ }
+
+ function switchGameTab(tab) {
+ document.querySelectorAll('.game-tab-btn').forEach(b =>b.classList.remove('active'));
+ document.getElementById('gtab-' + tab).classList.add('active');
+ if (tab ==='predictions') renderPredictionsTab();
+ else renderBoxScoreTab();
+ }
+
+ async function renderPredictionsTab() {
+ const g = currentGameDetail;
+ const contentEl = document.getElementById('game-tab-content');
+ contentEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
+
  const o1 = calcPayout(g.wp1), o2 = calcPayout(g.wp2);
  const isLocked = g.lock_time && new Date() >= new Date(g.lock_time);
- return `<div class="game-card">
-<div class="game-teams">
-<div class="team"><div class="team-name">${g.t1}</div><div class="team-odds-pill">${g.wp1}% win · ${o1}x</div></div>
-<div class="vs">VS</div>
-<div class="team"><div class="team-name">${g.t2}</div><div class="team-odds-pill">${g.wp2}% win · ${o2}x</div></div>
-</div>
- ${g.game_date ? `<div class="game-date">${new Date(g.game_date).toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</div>` :''}
- ${isLocked
- ? `<div style="text-align:center;padding:10px;background:rgba(192,57,43,0.15);border:1px solid rgba(192,57,43,0.3);border-radius:10px;font-size:13px;color:#ff7675">Betting is locked — game in progress</div>`
- : userBet
- ? `<div style="text-align:center;padding:10px;background:rgba(255,215,0,0.1);border-radius:10px;font-size:13px;color:#9a8200">Bet on<strong>${userBet.pick}</strong>— ${userBet.wager} Peels → ${userBet.potential} if win</div>`
- : `<div class="pick-buttons">
-<button class="pick-btn" id="pb-${g.id}-1" onclick="selectPick('${g.id}','${g.t1}',${o1})">${g.t1}<span class="btn-payout">Win → ${o1}x payout</span></button>
-<button class="pick-btn" id="pb-${g.id}-2" onclick="selectPick('${g.id}','${g.t2}',${o2})">${g.t2}<span class="btn-payout">Win → ${o2}x payout</span></button>
-</div>
-<div class="wager-row">
-<input class="wager-input" type="number" id="wager-${g.id}" placeholder="Peels to wager" min="1" step="1" oninput="updatePreview('${g.id}')"/>
-<button class="place-btn" id="placebtn-${g.id}" onclick="placeBet('${g.id}')">Place Bet</button>
-</div>
-<div class="payout-preview" id="preview-${g.id}"></div>`}
-</div>`;
- }).join('');
+ const isClosed = g.status ==='closed';
+
+ let userBet = null;
+ if (currentUser) {
+ const { data } = await supabase.from('bets').select('*').eq('user_id', currentUser.id).eq('game_id', g.id).maybeSingle();
+ userBet = data;
+ }
+
+ let bodyHtml ='';
+ if (isClosed) {
+ bodyHtml = `<div class="card" style="text-align:center">
+ <div style="font-size:13px;color:#1e8a4c;font-weight:700;margin-bottom:6px">Game Final</div>
+ <div style="font-family:'Bangers',cursive;font-size:22px;color:#1a1a2e">${escapeHtml(g.winner||'')} won</div>
+ </div>`;
+ } else if (isLocked) {
+ bodyHtml = `<div class="card" style="text-align:center;background:#fbdede;border-color:#f3b8b8">
+ <span style="color:#c0392b;font-size:13px">Predictions are locked — game in progress</span>
+ </div>`;
+ } else if (userBet) {
+ bodyHtml = `<div class="card" style="text-align:center">
+ <div style="font-size:13px;color:#9a8200">You predicted <strong>${escapeHtml(userBet.pick)}</strong></div>
+ <div style="font-size:13px;color:#6b6b78;margin-top:4px">${userBet.wager} Peels → ${userBet.potential} if correct</div>
+ </div>`;
+ } else {
+ bodyHtml = `<div class="card">
+ <div class="pick-buttons">
+ <button class="pick-btn" id="pb-${g.id}-1" onclick="selectPick('${g.id}','${escapeAttr(g.t1)}',${o1})">${escapeHtml(g.t1)}<span class="btn-payout">Win → ${o1}x payout</span></button>
+ <button class="pick-btn" id="pb-${g.id}-2" onclick="selectPick('${g.id}','${escapeAttr(g.t2)}',${o2})">${escapeHtml(g.t2)}<span class="btn-payout">Win → ${o2}x payout</span></button>
+ </div>
+ <div class="wager-row">
+ <input class="wager-input" type="number" id="wager-${g.id}" placeholder="Peels to wager" min="1" step="1" oninput="updatePreview('${g.id}')"/>
+ <button class="place-btn" id="placebtn-${g.id}" onclick="placeBet('${g.id}')">Place Prediction</button>
+ </div>
+ <div class="payout-preview" id="preview-${g.id}"></div>
+ </div>`;
+ }
+
+ contentEl.innerHTML = bodyHtml;
+ }
+
+ async function renderBoxScoreTab() {
+ const g = currentGameDetail;
+ const contentEl = document.getElementById('game-tab-content');
+ contentEl.innerHTML ='<div class="loading"><span class="spinner"></span>Finding box score...</div>';
+
+ try {
+ // Find the matching API game by date + team names
+ const dateStr = g.game_date ? new Date(g.game_date).toISOString().slice(0,10) : null;
+ if (!dateStr) { contentEl.innerHTML ='<div class="no-games">No date set for this game yet.</div>'; return; }
+
+ const url = `https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${dateStr}&dateTo=${dateStr}`;
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(url), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
+ const apiGames = await res.json();
+ const match = (apiGames||[]).find(ag =>
+ (ag.home_team.name === g.t1 || ag.away_team.name === g.t1) &&
+ (ag.home_team.name === g.t2 || ag.away_team.name === g.t2)
+ );
+
+ if (!match) { contentEl.innerHTML ='<div class="no-games">No box score found for this matchup on that date yet.</div>'; return; }
+ if (match.status !=='final') { contentEl.innerHTML ='<div class="no-games">Game hasn&#39;t finished yet — check back after the game!</div>'; return; }
+
+ await showBoxScore(match.id, contentEl);
+ } catch(e) {
+ contentEl.innerHTML = `<div class="no-games">Error: ${e.message}</div>`;
+ }
  }
 
  function selectPick(gameId, team, odds) {
@@ -803,8 +973,8 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  currentProfile.peels = newPeels;
 
  await refreshHeader();
- renderGames();
- toast(`Bet placed! ${wagerRounded} Peels on ${pick.team}`);
+ renderPredictionsTab();
+ toast(`Prediction placed! ${wagerRounded} Peels on ${pick.team}`);
  }
 
  // ─── My Bets page ─────────────────────────────────────────
@@ -1158,66 +1328,40 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  }
 
  // ─── Banana Ball Games Viewer ──────────────────────────────────
- function renderBBGamesPage() {
- const dateEl = document.getElementById('bbgames-date');
- if (!dateEl.value) {
- const today = new Date().toISOString().slice(0,10);
- dateEl.value = today;
- }
- document.getElementById('boxscore-detail').style.display ='none';
- document.getElementById('bbgames-list').style.display ='block';
- loadBBGames();
- }
-
- async function loadBBGames() {
- const gameDate = document.getElementById('bbgames-date').value;
- const listEl = document.getElementById('bbgames-list');
- if (!gameDate) return;
- listEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading games...</div>';
- try {
- const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=${gameDate}&dateTo=${gameDate}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
- const games = await res.json();
- if (!games?.length) { listEl.innerHTML ='<div class="no-games">No games on this date.</div>'; return; }
- listEl.innerHTML = games.map((g) => `
- <div class="matchup-card" style="cursor:pointer" onclick="showBoxScore('${g.id}')">
- <div class="matchup-teams">
- <div class="matchup-team">
- <div class="matchup-name">${escapeHtml(g.away_team.name)}</div>
- <div class="matchup-score">${g.away_team.points ?? '—'}</div>
- </div>
- <div class="matchup-vs">@</div>
- <div class="matchup-team">
- <div class="matchup-name">${escapeHtml(g.home_team.name)}</div>
- <div class="matchup-score">${g.home_team.points ?? '—'}</div>
- </div>
- </div>
- <div style="text-align:center;font-size:12px;color:#8a8a96;margin-top:8px">${g.status==='final'?'Final':g.status} · Tap for box score</div>
- </div>`).join('');
- } catch(e) {
- listEl.innerHTML = `<div class="no-games">Error loading games: ${e.message}</div>`;
- }
- }
-
- async function showBoxScore(gameId) {
- const detailEl = document.getElementById('boxscore-detail');
- document.getElementById('bbgames-list').style.display ='none';
- detailEl.style.display ='block';
+ async function showBoxScore(gameId, targetEl) {
+ const detailEl = targetEl || document.getElementById('game-tab-content');
  detailEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading box score...</div>';
  try {
  const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(`https://banana-stats-pages-seven.vercel.app/api/directus-items/box-score?gameId=${gameId}`), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
  const game = await res.json();
+ window._currentBoxScoreGame = game;
+ window._currentBoxScoreGameId = gameId;
 
- // Pull card payouts logged for this specific game, joined to player names
  const { data: payoutLogs } = await supabase.from('card_stat_logs')
  .select('base_peels, notes, player_cards(player_name, position)')
  .eq('game_id', gameId)
  .order('base_peels', { ascending: false });
 
+ const payoutByName = {};
+ for (const p of (payoutLogs||[])) {
+ if (p.player_cards?.player_name) payoutByName[p.player_cards.player_name.toLowerCase()] = p;
+ }
+
  const teamBlock = (team) => {
- const battersRows = (team.batters||[]).filter((b) => b.AB > 0 || b.R > 0 || b.H > 0).map((b) => `
- <div class="stat-row"><span class="stat-label">${escapeHtml(b.name)}</span><span class="stat-val">${b.H}-${b.AB}, ${b.RBI} RBI${b.K?', '+b.K+' K':''}</span></div>`).join('');
- const pitcherRows = (team.pitchers||[]).map((p) => `
- <div class="stat-row"><span class="stat-label">${escapeHtml(p.name)}</span><span class="stat-val">${p.IP} IP, ${p.ER} ER, ${p.K} K</span></div>`).join('');
+ const battersRows = (team.batters||[]).filter((b) => b.AB > 0 || b.R > 0 || b.H > 0).map((b) => {
+ const payout = payoutByName[b.name.toLowerCase()];
+ return `<div class="stat-row clickable-stat-row" onclick='openPlayerDrilldown(${JSON.stringify(b.name)}, "batter")'>
+ <span class="stat-label">${escapeHtml(b.name)}</span>
+ <span class="stat-val">${b.H}-${b.AB}, ${b.RBI} RBI${b.K?', '+b.K+' K':''}${payout?' · <span style="color:#1e8a4c">+'+payout.base_peels.toFixed(1)+'pts</span>':''}</span>
+ </div>`;
+ }).join('');
+ const pitcherRows = (team.pitchers||[]).map((p) => {
+ const payout = payoutByName[p.name.toLowerCase()];
+ return `<div class="stat-row clickable-stat-row" onclick='openPlayerDrilldown(${JSON.stringify(p.name)}, "pitcher")'>
+ <span class="stat-label">${escapeHtml(p.name)}</span>
+ <span class="stat-val">${p.IP} IP, ${p.ER} ER, ${p.K} K${payout?' · <span style="color:#1e8a4c">+'+payout.base_peels.toFixed(1)+'pts</span>':''}</span>
+ </div>`;
+ }).join('');
  return `<div class="card" style="margin-bottom:10px">
  <h3 style="color:#1a1a2e">${escapeHtml(team.teamName)} — ${team.prh.points_total} pts (${team.prh.runs} runs, ${team.prh.hits} hits)</h3>
  <div style="font-size:12px;color:#8a8a96;text-transform:uppercase;margin-bottom:6px">Batting</div>
@@ -1227,31 +1371,73 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  </div>`;
  };
 
- const payoutSection = payoutLogs?.length ? `
- <div class="card" style="margin-bottom:10px">
- <h3 style="color:#1a1a2e;margin-bottom:8px">Card Payouts</h3>
- ${payoutLogs.map(p => `
- <div class="payout-summary-row">
- <span>${escapeHtml(p.player_cards?.player_name||'Unknown')}${p.player_cards?.position?' <span style="color:#a0a0ae;font-size:11px">('+p.player_cards.position+')</span>':''}</span>
- <span class="${p.base_peels >= 0 ?'payout-pos':'payout-neg'}">${p.base_peels>=0?'+':''}${p.base_peels.toFixed(1)} pts</span>
- </div>`).join('')}
- </div>` : `
- <div class="card" style="margin-bottom:10px;text-align:center">
- <span style="color:#a0a0ae;font-size:13px">No card payouts synced for this game yet.</span>
- </div>`;
-
  detailEl.innerHTML = `
- <button class="result-btn" style="margin-bottom:12px;color:#1a1a2e" onclick="renderBBGamesPage()">← Back to Games</button>
  <div class="card" style="text-align:center;margin-bottom:12px">
  <div style="font-size:12px;color:#8a8a96">${game.venue?.name||''} · ${game.gameDate}</div>
  </div>
  ${game.teams.map(teamBlock).join('')}
- ${payoutSection}
  ${game.notes?`<div class="card" style="font-size:13px;color:#6b6b78;white-space:pre-wrap">${escapeHtml(game.notes)}</div>`:''}
+ <div id="player-drilldown"></div>
  `;
  } catch(e) {
- detailEl.innerHTML = `<div class="no-games">Error loading box score: ${e.message}</div><button class="result-btn" onclick="renderBBGamesPage()">← Back</button>`;
+ detailEl.innerHTML = `<div class="no-games">Error loading box score: ${e.message}</div>`;
  }
+ }
+
+ function openPlayerDrilldown(playerName, role) {
+ const ddEl = document.getElementById('player-drilldown');
+ if (!ddEl) return;
+ const game = window._currentBoxScoreGame;
+ let player = null;
+ for (const team of game.teams) {
+ const list = role ==='pitcher' ? team.pitchers : team.batters;
+ const found = (list||[]).find(p => p.name === playerName);
+ if (found) { player = found; break; }
+ }
+ if (!player) return;
+
+ let breakdownRows ='';
+ if (role ==='batter') {
+ const singles = player.H - 0;
+ breakdownRows = `
+ <div class="stat-row"><span class="stat-label">At Bats</span><span class="stat-val">${player.AB}</span></div>
+ <div class="stat-row"><span class="stat-label">Hits</span><span class="stat-val">${player.H}</span></div>
+ <div class="stat-row"><span class="stat-label">Runs</span><span class="stat-val">${player.R}</span></div>
+ <div class="stat-row"><span class="stat-label">RBI</span><span class="stat-val">${player.RBI}</span></div>
+ <div class="stat-row"><span class="stat-label">Ball Four Sprints</span><span class="stat-val">${player.B4S}</span></div>
+ <div class="stat-row"><span class="stat-label">Strikeouts</span><span class="stat-val">${player.K}</span></div>
+ <div class="stat-row"><span class="stat-label">Stolen Bases</span><span class="stat-val">${player.SB}</span></div>
+ `;
+ } else {
+ breakdownRows = `
+ <div class="stat-row"><span class="stat-label">Innings Pitched</span><span class="stat-val">${player.IP}</span></div>
+ <div class="stat-row"><span class="stat-label">Hits Allowed</span><span class="stat-val">${player.H}</span></div>
+ <div class="stat-row"><span class="stat-label">Earned Runs</span><span class="stat-val">${player.ER}</span></div>
+ <div class="stat-row"><span class="stat-label">Strikeouts</span><span class="stat-val">${player.K}</span></div>
+ <div class="stat-row"><span class="stat-label">Designations</span><span class="stat-val">${(player.designations||[]).join(', ')||'—'}</span></div>
+ `;
+ }
+
+ supabase.from('card_stat_logs')
+ .select('base_peels, notes, breakdown, player_cards(player_name)')
+ .eq('game_id', window._currentBoxScoreGameId)
+ .then(({data}) => {
+ const match = (data||[]).find(d => d.player_cards?.player_name === playerName);
+ const breakdownHtml = match?.breakdown ? Object.entries(match.breakdown).filter(([k,v]) => v.count !== 0).map(([k,v]) =>
+ `<div class="stat-row" style="padding-left:8px"><span class="stat-label" style="color:#6b6b78">${k} × ${v.count}</span><span class="stat-val" style="color:${v.points>=0?'#1e8a4c':'#c0392b'}">${v.points>=0?'+':''}${v.points.toFixed(2)}</span></div>`
+ ).join('') : '';
+ ddEl.innerHTML = `
+ <div class="modal-overlay" onclick="if(event.target===this)document.getElementById('player-drilldown').innerHTML=''">
+ <div class="modal-box" style="width:360px;max-height:80vh;overflow-y:auto">
+ <h3>${escapeHtml(playerName)}</h3>
+ ${breakdownRows}
+ <hr style="border:none;border-top:1px solid #ececf2;margin:10px 0"/>
+ ${breakdownHtml ? `<div style="font-size:12px;color:#8a8a96;margin-bottom:4px;font-weight:700">Peels Breakdown</div>${breakdownHtml}<hr style="border:none;border-top:1px solid #ececf2;margin:10px 0"/>` : ''}
+ <div class="stat-row"><span class="stat-label" style="font-weight:700">Total Peels Earned</span><span class="stat-val" style="color:#1e8a4c;font-weight:700">${match?match.base_peels.toFixed(1):'Not synced yet'}</span></div>
+ <button class="modal-confirm" style="width:100%;margin-top:14px" onclick="document.getElementById('player-drilldown').innerHTML=''">Close</button>
+ </div>
+ </div>`;
+ });
  }
 
  async function renderCardsPage() {
@@ -1393,7 +1579,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 
  await supabase.from('card_pack_members').insert({ card_id: card.id, pack_id: allPlayersPack.id });
  closeModal('create-card-modal');
- toast(player +' added to All Players pack! 🃏');
+ toast(player +' added to All Players pack!');
  renderAdmin();
  }
 
@@ -1557,7 +1743,7 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 
  closeModal('player-stats-modal');
  await refreshHeader();
- toast(`Paid out to ${holders.length} card holder(s)! 🃏`);
+ toast(`Paid out to ${holders.length} card holder(s)!`);
  }
 
  async function renderAdminCardsSection() {
@@ -1614,17 +1800,53 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  })).sort((a,b) => b.totalPts - a.totalPts);
 
  el.innerHTML = rows.map(r =>`
-<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">
+<div class="admin-card-points-row" data-card-id="${r.id}" style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f4;font-size:13px;cursor:pointer" onclick="openAdminCardBreakdown('${r.id}', '${escapeAttr(r.player_name)}')">
 <div>
 <strong>${escapeHtml(r.player_name)}</strong>
 <span style="color:#8a8a96"> ${r.position?'('+r.position+')':''} · ${escapeHtml(r.team_name||'')}</span>
-${r.owners===0?'<span style="color:#ff7675;font-size:11px;margin-left:6px">unowned</span>':`<span style="color:#6fcf97;font-size:11px;margin-left:6px">${r.owners} owner${r.owners>1?'s':''}</span>`}
+${r.owners===0?'<span style="color:#c0392b;font-size:11px;margin-left:6px">unowned</span>':`<span style="color:#1e8a4c;font-size:11px;margin-left:6px">${r.owners} owner${r.owners>1?'s':''}</span>`}
 </div>
 <div style="text-align:right">
 <div style="color:#9a8200;font-weight:700">${r.totalPts.toFixed(1)} pts</div>
-<div style="color:#a0a0ae;font-size:11px">${r.gamesLogged} game${r.gamesLogged!==1?'s':''} logged</div>
+<div style="color:#a0a0ae;font-size:11px">${r.gamesLogged} game${r.gamesLogged!==1?'s':''} logged · tap for detail</div>
 </div>
 </div>`).join('');
+ }
+
+ async function openAdminCardBreakdown(cardId, playerName) {
+ const { data: logs } = await supabase.from('card_stat_logs')
+ .select('base_peels, notes, game_date, game_id, breakdown')
+ .eq('card_id', cardId)
+ .order('game_date', { ascending: false });
+
+ const rows = (logs||[]).map(l => {
+ const statLines = l.breakdown ? Object.entries(l.breakdown).filter(([k,v]) => v.count !== 0).map(([k,v]) =>
+ `<div style="display:flex;justify-content:space-between;font-size:12px;color:#6b6b78;padding-left:12px"><span>${k} × ${v.count}</span><span>${v.points>=0?'+':''}${v.points.toFixed(2)}</span></div>`
+ ).join('') : '';
+ return `<div style="margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #f0f0f4">
+<div class="stat-row" style="border:none;padding-bottom:2px">
+<span class="stat-label" style="font-weight:700">${l.game_date||'Unknown date'}</span>
+<span class="stat-val" style="color:${l.base_peels>=0?'#1e8a4c':'#c0392b'};font-weight:700">${l.base_peels>=0?'+':''}${l.base_peels.toFixed(1)} pts</span>
+</div>
+${statLines}
+</div>`;
+ }).join('');
+
+ const totalPts = (logs||[]).reduce((sum,l) => sum + (l.base_peels||0), 0);
+
+ const modal = document.createElement('div');
+ modal.className ='modal-overlay';
+ modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+ modal.innerHTML = `
+<div class="modal-box" style="width:380px;max-height:80vh;overflow-y:auto">
+<h3>${escapeHtml(playerName)}</h3>
+<p style="font-size:12px;color:#8a8a96;margin-bottom:10px">Points logged per game, broken down by stat</p>
+${rows||'<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No games logged yet</div>'}
+<hr style="border:none;border-top:1px solid #ececf2;margin:10px 0"/>
+<div class="stat-row"><span class="stat-label" style="font-weight:700">Total</span><span class="stat-val" style="font-weight:700;color:#9a8200">${totalPts.toFixed(1)} pts</span></div>
+<button class="modal-confirm" style="width:100%;margin-top:14px" onclick="this.closest('.modal-overlay').remove()">Close</button>
+</div>`;
+ document.body.appendChild(modal);
  }
 
  // ─── Earnings popup ──────────────────────────────────────────
@@ -1642,7 +1864,7 @@ ${r.owners===0?'<span style="color:#ff7675;font-size:11px;margin-left:6px">unown
  popup.style.cssText ='position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:400';
  popup.innerHTML = `
 <div style="background:#1e293b;border:2px solid #FFD700;border-radius:20px;padding:24px;width:340px;max-width:95vw;max-height:80vh;overflow-y:auto">
-<div style="font-family:'Bangers',cursive;font-size:26px;color:#9a8200;letter-spacing:2px;text-align:center;margin-bottom:4px">🃏 Card Earnings!</div>
+<div style="font-family:'Bangers',cursive;font-size:26px;color:#9a8200;letter-spacing:2px;text-align:center;margin-bottom:4px">Card Earnings!</div>
 <div style="text-align:center;font-size:13px;color:#6b6b78;margin-bottom:16px">Your cards earned Peels while you were away</div>
  ${lines}
 <div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:15px">
@@ -1733,7 +1955,7 @@ ${r.owners===0?'<span style="color:#ff7675;font-size:11px;margin-left:6px">unown
  });
  if (error) { setError('starter-error', error.message); return; }
  closeModal('starter-card-modal');
- toast(`${playerName} added to your collection as Common! 🃏`);
+ toast(`${playerName} added to your collection as Common!`);
  if (currentUser) renderCardsPage();
  }
 
@@ -1759,7 +1981,7 @@ ${r.owners===0?'<span style="color:#ff7675;font-size:11px;margin-left:6px">unown
  } else if (event ==='SIGNED_OUT') {
  currentUser = null; currentProfile = null;
  document.getElementById('auth-overlay').style.display ='flex';
- showPage('games', document.getElementById('nav-games'));
+ showPage('games', null);
  }
  });
  } catch(e) {
