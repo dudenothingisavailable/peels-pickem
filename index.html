@@ -1039,60 +1039,70 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
  }
 
  // ─── Admin ────────────────────────────────────────────────
+ const BANANA_SEASON_ID ='e3acccd7-0c28-4eb8-aacf-cf907ee5c6f6';
+ let teamStatsCache = null;
+
+ async function fetchTeamStats() {
+ if (teamStatsCache) return teamStatsCache;
+ const url = `https://banana-stats-pages-seven.vercel.app/api/stats/teams_stats?category=teams&season=${BANANA_SEASON_ID}`;
+ const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(url), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
+ const teams = await res.json();
+ teamStatsCache = teams || [];
+ return teamStatsCache;
+ }
+
+ function findTeamStats(teams, teamName) {
+ const norm = s => (s||'').toLowerCase().trim();
+ return teams.find(t => norm(t.name) === norm(teamName) || norm(t.abbreviation) === norm(teamName))
+ || teams.find(t => norm(t.name).includes(norm(teamName)) || norm(teamName).includes(norm(t.name)));
+ }
+
  async function calculateWinPct() {
  const t1 = document.getElementById('a-t1').value.trim();
  const t2 = document.getElementById('a-t2').value.trim();
  const statusEl = document.getElementById('calc-status');
  if (!t1 || !t2) { statusEl.textContent ='Enter both team names first.'; statusEl.style.color ='#ff7675'; return; }
- statusEl.textContent ='Pulling season results...'; statusEl.style.color ='rgba(255,255,255,0.4)';
+ statusEl.textContent ='Pulling season stats...'; statusEl.style.color ='rgba(255,255,255,0.4)';
 
  try {
- // Pull the whole season's games (wide date range covers full season safely)
- const url = `https://banana-stats-pages-seven.vercel.app/api/stats/games?dateFrom=2026-01-01&dateTo=2026-12-31`;
- const res = await fetch(`${SUPABASE_URL}/functions/v1/banana-proxy?url=` + encodeURIComponent(url), { headers: { 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
- const games = await res.json();
- const finals = (games||[]).filter(g => g.status ==='final' && g.home_team?.points!=null && g.away_team?.points!=null);
+ const teams = await fetchTeamStats();
+ if (!teams.length) { statusEl.textContent ='No team stats found.'; statusEl.style.color ='#ff7675'; return; }
 
- if (!finals.length) { statusEl.textContent ='No completed games found to calculate from.'; statusEl.style.color ='#ff7675'; return; }
+ const away = findTeamStats(teams, t1); // t1 treated as "away" (A___ variables)
+ const home = findTeamStats(teams, t2); // t2 treated as "home" (H___ variables)
 
- function record(teamName, opponentName=null) {
- let wins = 0, total = 0;
- for (const g of finals) {
- const home = g.home_team.name, away = g.away_team.name;
- if (home !== teamName && away !== teamName) continue;
- if (opponentName && home !== opponentName && away !== opponentName) continue;
- const isHome = home === teamName;
- const myPts = isHome ? g.home_team.points : g.away_team.points;
- const oppPts = isHome ? g.away_team.points : g.home_team.points;
- total++;
- if (myPts > oppPts) wins++;
- }
- return total > 0 ? wins / total : 0.5; // default to 50% if no data
- }
+ if (!away) { statusEl.textContent = `Could not find stats for "${t1}".`; statusEl.style.color ='#ff7675'; return; }
+ if (!home) { statusEl.textContent = `Could not find stats for "${t2}".`; statusEl.style.color ='#ff7675'; return; }
 
- const t1VsT2 = record(t1, t2);
- const t1VsLeague = record(t1);
- const t2VsT1 = record(t2, t1);
- const t2VsLeague = record(t2);
+ const ARS = away.runs, ARA = away.runs_allowed, AGP = away.games, ATP = away.trick_play_outs;
+ const HRS = home.runs, HRA = home.runs_allowed, HGP = home.games, HTP = home.trick_play_outs;
 
- const t1Rating = (t1VsT2 * 0.55) + (t1VsLeague * 0.45);
- const t2Rating = (t2VsT1 * 0.55) + (t2VsLeague * 0.45);
+ if (!AGP || !HGP) { statusEl.textContent ='Missing games-played data for one of the teams.'; statusEl.style.color ='#ff7675'; return; }
 
- let t1Pct, t2Pct;
- if (t1Rating + t2Rating === 0) {
- t1Pct = 50; t2Pct = 50;
- } else {
- t1Pct = Math.round((t1Rating / (t1Rating + t2Rating)) * 100);
- t2Pct = 100 - t1Pct;
- }
+ // K2: run-differential component (Pythagorean-style)
+ const awayOff = Math.pow(ARS / AGP, 1.83);
+ const awayDef = Math.pow(ARA / AGP, 1.83);
+ const homeOff = Math.pow(HRS / HGP, 1.83);
+ const homeDef = Math.pow(HRA / HGP, 1.83);
+ const K = (awayOff * homeOff) / ((awayOff * homeOff) + (homeDef * awayDef));
+
+ // L2: trick play equalizer component
+ const awayTPRate = ATP / AGP;
+ const homeTPRate = HTP / HGP;
+ const L = awayTPRate / (awayTPRate + homeTPRate);
+
+ // M2: blended away win %
+ const M = (0.875 * K) + (0.125 * L);
+
+ let t1Pct = Math.round(M * 100);
  t1Pct = Math.max(1, Math.min(99, t1Pct));
- t2Pct = 100 - t1Pct;
+ let t2Pct = 100 - t1Pct;
 
  document.getElementById('a-wp1').value = t1Pct;
  document.getElementById('a-wp2').value = t2Pct;
  updateOddsPreview();
 
- statusEl.innerHTML = `Calculated from${finals.length} season games. ${escapeHtml(t1)} vs${escapeHtml(t2)}: ${(t1VsT2*100).toFixed(0)}% · League: ${(t1VsLeague*100).toFixed(0)}%`;
+ statusEl.innerHTML = `${escapeHtml(t1)}: ${ARS}RS/${ARA}RA/${AGP}GP/${ATP}TP · ${escapeHtml(t2)}: ${HRS}RS/${HRA}RA/${HGP}GP/${HTP}TP → K=${(K*100).toFixed(1)}% L=${(L*100).toFixed(1)}%`;
  statusEl.style.color ='#6fcf97';
  } catch(e) {
  statusEl.textContent ='Error: ' + e.message;
