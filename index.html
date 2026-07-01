@@ -1079,12 +1079,13 @@ Or email us directly at <a href="mailto:peelspickem@gmail.com" style="color:#9a8
 
  if (!AGP || !HGP) { statusEl.textContent ='Missing games-played data for one of the teams.'; statusEl.style.color ='#ff7675'; return; }
 
- // K2: run-differential component (Pythagorean-style)
- const awayOff = Math.pow(ARS / AGP, 1.83);
- const awayDef = Math.pow(ARA / AGP, 1.83);
- const homeOff = Math.pow(HRS / HGP, 1.83);
- const homeDef = Math.pow(HRA / HGP, 1.83);
- const K = (awayOff * homeOff) / ((awayOff * homeOff) + (homeDef * awayDef));
+ // K2: =((B2/D2)^1.83 * (H2/I2)^1.83) / (((B2/D2)^1.83 * (H2/I2)^1.83) + ((G2/I2)^1.83 * (C2/D2)^1.83))
+ // B=ARS, C=ARA, D=AGP, G=HRS, H=HRA, I=HGP
+ const awayScoreRate = Math.pow(ARS / AGP, 1.83); // B2/D2
+ const homeAllowRate = Math.pow(HRA / HGP, 1.83); // H2/I2
+ const homeScoreRate = Math.pow(HRS / HGP, 1.83); // G2/I2
+ const awayAllowRate = Math.pow(ARA / AGP, 1.83); // C2/D2
+ const K = (awayScoreRate * homeAllowRate) / ((awayScoreRate * homeAllowRate) + (homeScoreRate * awayAllowRate));
 
  // L2: trick play equalizer component
  const awayTPRate = ATP / AGP;
