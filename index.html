@@ -1767,14 +1767,20 @@ ${n.body?`<div style="font-size:12px;color:#8a8a96;margin-top:2px">${escapeHtml(
  .order('game_date', { ascending: false });
 
  // Only show games that happened on/after the user claimed this card.
- // game_date reflects when the underlying game was played (set by the
- // Game Stats Sync flow), which is the right signal here — a game that
- // happened before the user owned the card shouldn't count for them,
- // no matter when admin ran the sync for it.
+ // game_date is a date-only string (e.g. "2026-06-30"), which JS parses as
+ // midnight UTC. Compare against END of that day instead, so a card claimed
+ // any time on the same day a game was played still counts for that game —
+ // matching the exact same end-of-day boundary sync-banana-stats uses when
+ // deciding who to actually pay out.
  const ownedSinceDate = ownedSince ? new Date(ownedSince) : null;
  const logs = (allLogs||[]).filter(l => {
  if (!ownedSinceDate) return true;
- const logDate = l.game_date ? new Date(l.game_date) : (l.created_at ? new Date(l.created_at) : null);
+ let logDate = null;
+ if (l.game_date) {
+ logDate = new Date(`${l.game_date}T23:59:59.999Z`);
+ } else if (l.created_at) {
+ logDate = new Date(l.created_at);
+ }
  return logDate ? logDate >= ownedSinceDate : true;
  });
 
@@ -1958,19 +1964,6 @@ ${rows||'<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No games logged
  }
 
  async function renderCardsPage() {
- // Check for unseen earnings first
- const { data: unseen } = await supabase.from('card_earnings_log')
- .select('*, player_cards(player_name)')
- .eq('user_id', currentUser.id)
- .eq('seen', false)
- .order('created_at', {ascending: false});
-
- if (unseen?.length) {
- showEarningsPopup(unseen);
- // Mark all as seen
- await supabase.from('card_earnings_log').update({ seen: true }).eq('user_id', currentUser.id).eq('seen', false);
- }
-
  // My cards
  const myEl = document.getElementById('my-cards-list');
  myEl.innerHTML ='<div class="loading"><span class="spinner"></span>Loading...</div>';
@@ -2373,33 +2366,6 @@ ${rows||'<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No games logged
  document.body.appendChild(modal);
  }
 
- // ─── Earnings popup ──────────────────────────────────────────
- function showEarningsPopup(earnings) {
- const existing = document.getElementById('earnings-popup');
- if (existing) existing.remove();
- const total = earnings.reduce((sum, e) =>sum + e.payout, 0);
- const lines = earnings.map(e =>`
-<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">
-<span style="color:rgba(255,255,255,0.8)">${e.player_cards?.player_name||'Player'} ${e.notes?'·'+e.notes:''}</span>
-<span style="color:#9a8200;font-weight:700">+${e.payout}</span>
-</div>`).join('');
- const popup = document.createElement('div');
- popup.id ='earnings-popup';
- popup.style.cssText ='position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;align-items:center;justify-content:center;z-index:400';
- popup.innerHTML = `
-<div style="background:#1e293b;border:2px solid #FFD700;border-radius:20px;padding:24px;width:340px;max-width:95vw;max-height:80vh;overflow-y:auto">
-<div style="font-family:'Bangers',cursive;font-size:26px;color:#9a8200;letter-spacing:2px;text-align:center;margin-bottom:4px">Card Earnings!</div>
-<div style="text-align:center;font-size:13px;color:#6b6b78;margin-bottom:16px">Your cards earned Peels while you were away</div>
- ${lines}
-<div style="display:flex;justify-content:space-between;padding:12px 0 0;font-weight:700;font-size:15px">
-<span>Total earned</span>
-<span style="color:#9a8200;font-family:'Bangers',cursive;font-size:20px">+${total}</span>
-</div>
-<button onclick="document.getElementById('earnings-popup').remove()" style="margin-top:14px;width:100%;background:#FFD700;color:#1a1a2e;border:none;padding:11px;border-radius:12px;font-weight:700;cursor:pointer;font-size:15px;font-family:'DM Sans',sans-serif">Sweet!</button>
-</div>`;
- document.body.appendChild(popup);
- }
-
  // ─── Upgrade card ────────────────────────────────────────────
  async function upgradeCard(userCardId, playerName, currentRarity) {
  const cost = UPGRADE_COST[currentRarity];
@@ -2466,13 +2432,26 @@ ${rows||'<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No games logged
 </div>`).join('');
  }
 
+ let starterClaimInProgress = false;
  async function claimStarterCard(playerName) {
  setError('starter-error','');
  const uid = starterUserId || currentUser?.id;
  if (!uid) return;
+ if (starterClaimInProgress) return;
+ starterClaimInProgress = true;
+
+ try {
  // Get any card for this player (common preferred)
- const { data: cards } = await supabase.from('player_cards').select('id, rarity').eq('player_name', playerName).order('rarity');
+ const { data: cards } = await supabase.from('player_cards').select('id, rarity, player_name').eq('player_name', playerName).order('rarity');
  if (!cards?.length) { setError('starter-error','Player not found.'); return; }
+
+ // Refuse if the user already owns ANY card for this player, under any of
+ // that player's card_ids - prevents accidental double-claims (e.g. a
+ // double-click) or reusing the starter picker to grab a second copy.
+ const cardIds = cards.map(c => c.id);
+ const { data: existingOwned } = await supabase.from('user_cards').select('id').eq('user_id', uid).in('card_id', cardIds).limit(1);
+ if (existingOwned?.length) { setError('starter-error', `You already have a ${playerName} card.`); return; }
+
  const card = cards[0];
  const { error } = await supabase.from('user_cards').insert({
  user_id: uid, card_id: card.id, total_peels_earned: 0, locked_rarity:'common'
@@ -2481,6 +2460,9 @@ ${rows||'<div style="font-size:13px;color:#a0a0ae;padding:8px 0">No games logged
  closeModal('starter-card-modal');
  toast(`${playerName} added to your collection as Common!`);
  if (currentUser) renderCardsPage();
+ } finally {
+ starterClaimInProgress = false;
+ }
  }
 
  // ─── Boot ─────────────────────────────────────────────────
